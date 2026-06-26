@@ -1,0 +1,14 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+
+# Obsidian（易变、与本机相关）
+.obsidian/workspace*
+.obsidian/cache
+.trash/
