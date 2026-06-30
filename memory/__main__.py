@@ -10,6 +10,7 @@
   回顾   python -m memory recent [--n N] 看近期 active 记忆（反思前回顾，给源 id）
   反思   python -m memory reflect "洞察" --from id1,id2  合成高层洞察，带源链接存回
   导出   python -m memory export-md       把语义核心(要点+反思)单向导出成 Markdown（人可读）
+  向量   python -m memory embed [--model M]  给记忆算本地 embedding(Ollama，可选层；没有则退字面)
   睡眠   python -m memory sleep          跑遗忘：固化过且已淡的 → 降到 cold（潜意识）
 
 存储落在 memory/thamus.json —— 它跟着项目走。任何设备 clone 下来，我的记忆就在。
@@ -128,6 +129,20 @@ def cmd_export_md(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_embed(args: argparse.Namespace) -> int:
+    """给记忆算本地 embedding（Ollama，可选层）。环境没有则全失败但不崩——退字面检索。"""
+    mem = _load()
+    ok, fail = mem.embed_all(model=args.model)
+    if ok == 0 and fail > 0:
+        print(
+            f"[embedding] 0 成功 / {fail} 失败——环境可能没有 Ollama 或模型「{args.model}」。"
+            f"退字面检索（max jaccard/coverage），照常工作。"
+        )
+    else:
+        print(f"[embedding] {ok} 条已算 embedding / {fail} 条失败（模型 {args.model}）。")
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         prog="python -m memory",
@@ -167,6 +182,10 @@ def main() -> int:
     p_md = sub.add_parser("export-md", help="把语义核心(要点+反思)单向导出成 Markdown（人可读）")
     p_md.add_argument("--path", default=str(STORE.parent / "semantic-core.md"), help="导出路径")
     p_md.set_defaults(func=cmd_export_md)
+
+    p_embed = sub.add_parser("embed", help="给记忆算本地 embedding(Ollama，可选层；没有则退字面)")
+    p_embed.add_argument("--model", default="nomic-embed-text", help="Ollama embedding 模型，默认 nomic-embed-text")
+    p_embed.set_defaults(func=cmd_embed)
 
     args = parser.parse_args()
     return args.func(args)

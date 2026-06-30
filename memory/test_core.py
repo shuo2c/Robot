@@ -352,5 +352,77 @@ class SemanticMarkdownTest(unittest.TestCase):
         self.assertIn("要点X", text)
 
 
+class EmbeddingTest(unittest.TestCase):
+    """embedding 可选层（伞）：有就用余弦，没有退字面。全部 mock，不依赖真 Ollama。"""
+
+    def test_cosine(self) -> None:
+        from . import core
+
+        self.assertAlmostEqual(core._cosine([1.0, 0.0], [0.0, 1.0]), 0.0)
+        self.assertAlmostEqual(core._cosine([1.0, 0.0], [1.0, 0.0]), 1.0)
+        self.assertAlmostEqual(core._cosine([1.0, 2.0], [2.0, 4.0]), 1.0)  # 同向
+        self.assertEqual(core._cosine([1.0], [1.0, 2.0]), 0.0)  # 维度不符
+        self.assertEqual(core._cosine([], []), 0.0)
+
+    def test_retrieve_uses_cosine_when_embeddings_present(self) -> None:
+        from . import core
+
+        mem = Memory(path=None)
+        near = mem.remember("关于水果的哲学思考", importance=0.5)
+        far = mem.remember("宇宙学的基本原理", importance=0.5)
+        near.embedding = [1.0, 0.0]
+        far.embedding = [0.0, 1.0]
+        orig = core._ollama_embed
+        core._ollama_embed = lambda text, model="nomic-embed-text", timeout=2.0: [1.0, 0.0]
+        try:
+            results = mem.retrieve("苹果")  # 字面与两者都不重叠，只能靠 embedding 排序
+            self.assertEqual(results[0][1].id, near.id)
+        finally:
+            core._ollama_embed = orig
+
+    def test_retrieve_zero_overhead_when_no_embeddings(self) -> None:
+        from . import core
+
+        def boom(text, model="nomic-embed-text", timeout=2.0):
+            raise RuntimeError("没有记忆有 embedding 时，retrieve 不该调 _ollama_embed")
+
+        orig = core._ollama_embed
+        core._ollama_embed = boom
+        try:
+            mem = Memory(path=None)
+            hit = mem.remember("向量检索很好用", importance=0.5)
+            mem.remember("今天吃了面条", importance=0.5)
+            results = mem.retrieve("向量检索")
+            self.assertEqual(results[0][1].id, hit.id)  # 字面排序照常
+        finally:
+            core._ollama_embed = orig
+
+    def test_embed_and_embed_all(self) -> None:
+        from . import core
+
+        orig = core._ollama_embed
+        try:
+            core._ollama_embed = lambda text, model="nomic-embed-text", timeout=2.0: [0.1, 0.2, 0.3]
+            mem = Memory(path=None)
+            m = mem.remember("一条记忆")
+            self.assertTrue(mem.embed(m.id))
+            self.assertEqual(m.embedding, [0.1, 0.2, 0.3])
+
+            # _ollama_embed 返回 None（环境无 Ollama）→ embed 返回 False，不设字段
+            core._ollama_embed = lambda text, model="nomic-embed-text", timeout=2.0: None
+            m2 = mem.remember("另一条")
+            self.assertFalse(mem.embed(m2.id))
+            self.assertIsNone(m2.embedding)
+
+            # embed_all 只算缺的、且能算的
+            core._ollama_embed = lambda text, model="nomic-embed-text", timeout=2.0: [0.5, 0.5]
+            mem.remember("第三条")
+            ok, fail = mem.embed_all()
+            self.assertEqual(ok, 2)  # m2、第三条（m 已有 embedding，跳过）
+            self.assertIsNotNone(mem.items[m2.id].embedding)
+        finally:
+            core._ollama_embed = orig
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

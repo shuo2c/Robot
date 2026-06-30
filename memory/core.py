@@ -60,6 +60,41 @@ def _query_coverage(query: set[str], content: set[str]) -> float:
     return len(query & content) / len(query)
 
 
+def _cosine(a: list[float], b: list[float]) -> float:
+    """余弦相似度（语义检索用）。维度不符或零向量返回 0。"""
+    if not a or not b or len(a) != len(b):
+        return 0.0
+    dot = sum(x * y for x, y in zip(a, b))
+    na = math.sqrt(sum(x * x for x in a))
+    nb = math.sqrt(sum(y * y for y in b))
+    if na == 0 or nb == 0:
+        return 0.0
+    return dot / (na * nb)
+
+
+def _ollama_embed(
+    text: str, model: str = "nomic-embed-text", timeout: float = 2.0
+) -> list[float] | None:
+    """尝试用本地 Ollama 算 embedding。失败（没装/没跑/没模型）返回 None → 退字面。
+
+    可选层（伞）：用纯标准库 urllib 调本地 Ollama，不引入 pip 依赖。环境没有 Ollama
+    时它返回 None，core.py 照样跑（字面检索承重）。模型文件不进仓库。
+    """
+    try:
+        import json as _json
+        import urllib.request
+
+        req = urllib.request.Request(
+            "http://localhost:11434/api/embeddings",
+            data=_json.dumps({"model": model, "prompt": text}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+        )
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return list(_json.loads(r.read().decode("utf-8"))["embedding"])
+    except Exception:
+        return None
+
+
 @dataclass
 class MemoryItem:
     """一条记忆。模态无关。"""
@@ -155,14 +190,22 @@ class Memory:
     # —— 检索：强度 × 相关性 ——
     def retrieve(self, query: str, k: int = 5) -> list[tuple[float, MemoryItem]]:
         q = set(_tokens(query))
+        # 伞：仅当至少一条 active 记忆已有 embedding，才算 query embedding 启用语义检索；
+        # 否则零开销走字面（环境没 Ollama 时就是这样，retrieve 不会去连 Ollama）。
+        has_emb = any(
+            m.embedding is not None for m in self.items.values() if m.state == "active"
+        )
+        q_emb = _ollama_embed(query) if has_emb else None
         scored: list[tuple[float, MemoryItem]] = []
         for m in self.items.values():
             if m.state != "active":
                 continue
-            ct = set(_tokens(m.content))
-            # 相关性取 jaccard 与"查询覆盖率"的较大者。
-            # jaccard 受 content 长度稀释；覆盖率只看查询侧，补救这个盲区。
-            rel = max(_jaccard(q, ct), _query_coverage(q, ct))
+            if q_emb is not None and m.embedding is not None:
+                rel = _cosine(q_emb, m.embedding)  # 语义
+            else:
+                ct = set(_tokens(m.content))
+                # 字面：jaccard 与查询覆盖率的较大者（覆盖率抗长查询稀释）。
+                rel = max(_jaccard(q, ct), _query_coverage(q, ct))
             score = self.strength(m) * (0.1 + rel)  # 留底 0.1：让强记忆即使不相关也能浮现
             scored.append((score, m))
         scored.sort(key=lambda x: x[0], reverse=True)
@@ -213,6 +256,35 @@ class Memory:
         p = Path(path)
         p.write_text(self.to_markdown(), encoding="utf-8")
         return p
+
+    # —— embedding 可选层（伞）：本地 Ollama，失败退字面 ——
+    def embed(self, item_id: str, model: str = "nomic-embed-text") -> bool:
+        """给一条记忆算 embedding（本地 Ollama）。成功设字段返回 True；环境没有返回 False。"""
+        m = self.items.get(item_id)
+        if m is None:
+            return False
+        vec = _ollama_embed(m.content, model=model)
+        if vec is None:
+            return False
+        m.embedding = vec
+        self._save()
+        return True
+
+    def embed_all(self, model: str = "nomic-embed-text") -> tuple[int, int]:
+        """批量给缺 embedding 的 active 记忆算。环境无 Ollama 时第一条失败即整批跳过
+        （否则每条都要等 timeout，太慢）。返回 (成功数, 失败数)。"""
+        targets = [m for m in self.items.values() if m.state == "active" and m.embedding is None]
+        if not targets:
+            return 0, 0
+        if not self.embed(targets[0].id, model=model):  # 探测：第一条失败 → 环境不可用，整批跳过
+            return 0, len(targets)
+        ok, fail = 1, 0
+        for m in targets[1:]:
+            if self.embed(m.id, model=model):
+                ok += 1
+            else:
+                fail += 1
+        return ok, fail
 
     # —— 持久化（JSON，可检查；未来升级 SQLite）——
     def _save(self) -> None:
