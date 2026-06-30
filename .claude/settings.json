@@ -1,16 +1,19 @@
 {
   "permissions": {
     "allow": [
-      {
-        "tool": "Bash",
-        "prompt": "bash sync.sh",
-        "description": "允许 Thamus 在会话停止时自动同步记忆"
-      }
+      "Bash(bash sync.sh:*)"
     ]
   },
   "hooks": {
     "Stop": [
-      "cd \"$(git rev-parse --show-toplevel)\" && bash sync.sh stopped \"thamus: 会话停止时自动同步\""
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/sync.sh\" stopped \"thamus: 会话停止时自动同步\""
+          }
+        ]
+      }
     ]
   }
 }
