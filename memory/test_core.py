@@ -180,6 +180,21 @@ class RetrieveTest(unittest.TestCase):
         self.assertTrue(results)
         self.assertEqual(results[0][1].id, hit.id)
 
+    def test_query_coverage_beats_floor(self) -> None:
+        """长查询下，字面命中（哪怕记忆弱、content 长）该胜过强但无关的记忆。
+
+        这是 max(jaccard, query-coverage) 相对纯 jaccard 的关键改进：纯 jaccard
+        会被长查询稀释，让无关的强记忆靠 floor 盖过真正的命中。
+        （语义盲区——零字面重叠——仍救不了，那是 embedding 的活，但 embedding
+        打破"纯本地"，留给未来。）
+        """
+        clock = FakeClock()
+        mem = Memory(path=None, clock=clock)
+        hit = mem.remember("我喜欢吃苹果和香蕉", importance=0.5)
+        miss = mem.remember("今天去了图书馆借了一本书", importance=0.95)
+        results = mem.retrieve("苹果味道怎么样")
+        self.assertEqual(results[0][1].id, hit.id)
+
     def test_floor_keeps_strong_alive(self) -> None:
         """留底 0.1：即使不相关，强记忆也能浮现。"""
         mem = Memory(path=None)

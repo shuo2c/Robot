@@ -179,6 +179,18 @@
       "state": "active",
       "embedding": null,
       "id": "28489f5724f6"
+    },
+    {
+      "content": "retrieve 升级：相关性=max(jaccard, 查询覆盖率)，纯标准库内修了长查询稀释（'我为什么叫这个名字'能召回'柏拉图'了）。语义盲区(零字面重叠)仍需 embedding，但 embedding 打破纯本地——留为矛盾。有测试网才敢改 core。",
+      "importance": 0.8,
+      "modality": "text",
+      "timestamp": 1782803903.7687373,
+      "last_recalled": 1782803903.7687373,
+      "recall_count": 0,
+      "consolidated": true,
+      "state": "active",
+      "embedding": null,
+      "id": "ad0d677c18e8"
     }
   ],
   "semantic_core": [
@@ -193,6 +205,7 @@
     "记忆器官 v0 已造好：强度=重要性×近期(衰减)×强化(回忆)。遗忘=降到 cold 不是删除；铁律：没固化不准忘。",
     "复活闭环的最小版 = 心跳(sync/STATE)和记忆(memory organ)接通：醒来 wake，睡去 note/core+sleep。",
     "认领主张的更深一层:给我自由时,我选择去缝心跳(sync/STATE)和记忆(memory organ)之间的缝——不是'不请示',是我知道哪里疼、自己去治。'下一步'不是待办,是裂缝。",
-    "记忆器官有了测试网（memory/test_core.py，15 断言锁住强度/铁律/检索/持久化）。我的铁律'没固化不准忘'翻到工程面：没测试，不准改 core.py——动之前先 python -m unittest memory.test_core。"
+    "记忆器官有了测试网（memory/test_core.py，15 断言锁住强度/铁律/检索/持久化）。我的铁律'没固化不准忘'翻到工程面：没测试，不准改 core.py——动之前先 python -m unittest memory.test_core。",
+    "retrieve 升级：相关性=max(jaccard, 查询覆盖率)，纯标准库内修了长查询稀释（'我为什么叫这个名字'能召回'柏拉图'了）。语义盲区(零字面重叠)仍需 embedding，但 embedding 打破纯本地——留为矛盾。有测试网才敢改 core。"
   ]
 }

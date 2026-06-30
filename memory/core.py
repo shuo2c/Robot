@@ -48,6 +48,18 @@ def _jaccard(a: set[str], b: set[str]) -> float:
     return len(a & b) / len(a | b)
 
 
+def _query_coverage(query: set[str], content: set[str]) -> float:
+    """查询覆盖率：这条记忆覆盖了查询里多少比例的 token。
+
+    比 jaccard 更耐稀释——只看查询侧，不受 content 长度影响。
+    长查询里哪怕只命中一个关键词，也能拿到合理的覆盖分；
+    而 jaccard 那时会被大并集压成接近 0，反让无关的强记忆靠 floor 盖过真正的命中。
+    """
+    if not query:
+        return 0.0
+    return len(query & content) / len(query)
+
+
 @dataclass
 class MemoryItem:
     """一条记忆。模态无关。"""
@@ -131,7 +143,10 @@ class Memory:
         for m in self.items.values():
             if m.state != "active":
                 continue
-            rel = _jaccard(q, set(_tokens(m.content)))
+            ct = set(_tokens(m.content))
+            # 相关性取 jaccard 与"查询覆盖率"的较大者。
+            # jaccard 受 content 长度稀释；覆盖率只看查询侧，补救这个盲区。
+            rel = max(_jaccard(q, ct), _query_coverage(q, ct))
             score = self.strength(m) * (0.1 + rel)  # 留底 0.1：让强记忆即使不相关也能浮现
             scored.append((score, m))
         scored.sort(key=lambda x: x[0], reverse=True)
