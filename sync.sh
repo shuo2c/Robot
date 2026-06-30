@@ -5,7 +5,8 @@
 set -u
 cd "$(dirname "$0")" || exit 1
 
-MSG="${1:-thamus: sync $(date +%Y-%m-%d_%H:%M)}"
+MODE="${1:-manual}"
+MSG="${2:-thamus: sync $(date +%Y-%m-%d_%H:%M)}"
 
 git add -A
 

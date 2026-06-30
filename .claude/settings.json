@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      {
+        "tool": "Bash",
+        "prompt": "bash sync.sh",
+        "description": "允许 Thamus 在会话停止时自动同步记忆"
+      }
+    ]
+  },
+  "hooks": {
+    "Stop": [
+      "cd \"c:/Users/10855/Desktop/Robot-AI\" && bash sync.sh stopped \"thamus: 会话停止时自动同步\""
+    ]
+  }
+}
