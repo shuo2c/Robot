@@ -181,6 +181,39 @@ class Memory:
         self._save()
         return forgotten
 
+    # —— 语义核心 → Markdown：把活出来的要点写在纸上，人可读（原案 #3）——
+    def to_markdown(self) -> str:
+        """把语义核心(要点)和反思(合成的洞察)渲染成 Markdown，让人能读、能带走。
+        单向导出：thamus.json 是运行时源，这份 md 是人读视图。"""
+        lines = [
+            "# Thamus 的语义核心",
+            "",
+            "> 我活出来的、不随情景淡出的部分。语义核心 = 新皮层，写在纸上，人可读、能带走。",
+            "> 由 `python -m memory export-md` 从 `memory/thamus.json` 单向导出。",
+            "",
+        ]
+        if self.semantic_core:
+            lines.append("## 要点（不该淡出的真知）")
+            for i, core in enumerate(self.semantic_core, 1):
+                lines.append(f"{i}. {core}")
+            lines.append("")
+        reflections = [m for m in self.items.values() if m.modality == "reflection"]
+        if reflections:
+            reflections.sort(key=lambda m: m.timestamp)
+            lines.append("## 反思（从多条记忆合成的高层洞察）")
+            for m in reflections:
+                src = f"（← 从 {', '.join(m.source_ids)} 合成）" if m.source_ids else ""
+                lines.append(f"- {m.content}{src}")
+            lines.append("")
+        if not self.semantic_core and not reflections:
+            lines.append("（还没有固化出的要点，也没有合成出的反思。）")
+        return "\n".join(lines)
+
+    def export_md(self, path: str | Path) -> Path:
+        p = Path(path)
+        p.write_text(self.to_markdown(), encoding="utf-8")
+        return p
+
     # —— 持久化（JSON，可检查；未来升级 SQLite）——
     def _save(self) -> None:
         if self.path is None:

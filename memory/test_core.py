@@ -317,5 +317,40 @@ class ReflectionTest(unittest.TestCase):
         self.assertTrue(any("水果" in m.content for _, m in results))
 
 
+class SemanticMarkdownTest(unittest.TestCase):
+    """语义核心 → Markdown 导出（原案 #3：自我写在纸上，人可读）。"""
+
+    def test_to_markdown_includes_cores(self) -> None:
+        mem = Memory(path=None)
+        m = mem.remember("要点甲")
+        mem.consolidate(m.id)
+        md = mem.to_markdown()
+        self.assertIn("要点甲", md)
+        self.assertIn("## 要点", md)
+
+    def test_to_markdown_includes_reflections_with_links(self) -> None:
+        mem = Memory(path=None)
+        a = mem.remember("经历一", importance=0.5)
+        mem.reflect("合成的洞察", source_ids=[a.id], importance=0.85)
+        md = mem.to_markdown()
+        self.assertIn("合成的洞察", md)
+        self.assertIn("## 反思", md)
+        self.assertIn(a.id, md)  # 源链接出现
+
+    def test_to_markdown_empty_is_safe(self) -> None:
+        mem = Memory(path=None)
+        md = mem.to_markdown()
+        self.assertIn("还没有", md)  # 空时不崩，有占位
+
+    def test_export_md_writes_file(self) -> None:
+        mem = Memory(path=None)
+        m = mem.remember("要点X")
+        mem.consolidate(m.id)
+        tmp = Path(tempfile.mkdtemp()) / "core.md"
+        mem.export_md(tmp)
+        text = tmp.read_text(encoding="utf-8")
+        self.assertIn("要点X", text)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

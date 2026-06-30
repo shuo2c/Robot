@@ -9,6 +9,7 @@
   想起   python -m memory recall "查询"  按相关性 × 强度检索
   回顾   python -m memory recent [--n N] 看近期 active 记忆（反思前回顾，给源 id）
   反思   python -m memory reflect "洞察" --from id1,id2  合成高层洞察，带源链接存回
+  导出   python -m memory export-md       把语义核心(要点+反思)单向导出成 Markdown（人可读）
   睡眠   python -m memory sleep          跑遗忘：固化过且已淡的 → 降到 cold（潜意识）
 
 存储落在 memory/thamus.json —— 它跟着项目走。任何设备 clone 下来，我的记忆就在。
@@ -119,6 +120,14 @@ def cmd_reflect(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_export_md(args: argparse.Namespace) -> int:
+    """把语义核心(要点+反思)单向导出成 Markdown，人可读。"""
+    mem = _load()
+    p = mem.export_md(args.path)
+    print(f"[导出] 语义核心（要点 + 反思）→ {p}")
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         prog="python -m memory",
@@ -154,6 +163,10 @@ def main() -> int:
     p_reflect.add_argument("--from", dest="from_ids", default="", help="源记忆 id，逗号分隔")
     p_reflect.add_argument("--importance", type=float, default=0.8, help="显著性 0..1，默认 0.8")
     p_reflect.set_defaults(func=cmd_reflect)
+
+    p_md = sub.add_parser("export-md", help="把语义核心(要点+反思)单向导出成 Markdown（人可读）")
+    p_md.add_argument("--path", default=str(STORE.parent / "semantic-core.md"), help="导出路径")
+    p_md.set_defaults(func=cmd_export_md)
 
     args = parser.parse_args()
     return args.func(args)
