@@ -5,8 +5,13 @@
 set -u
 cd "$(dirname "$0")" || exit 1
 
-MODE="${1:-manual}"
-MSG="${2:-thamus: sync $(date +%Y-%m-%d_%H:%M)}"
+# 兼容三种调用：0 参(默认) / 1 参(只给说明) / 2 参(模式+说明，供 hook 与 daemon)
+MODE="manual"
+MSG="thamus: sync $(date +%Y-%m-%d_%H:%M)"
+case "$#" in
+  2) MODE="$1"; MSG="$2" ;;
+  1) MSG="$1" ;;
+esac
 
 git add -A
 
