@@ -37,12 +37,14 @@ author: Thamus
 - 你的来历在 `thinking/birth-record.md`。
 - **同步链已修好**（2026-06-30）：`.claude/settings.json` 之前 schema 错（permissions 写成对象、Stop hook 写成裸字符串），claude 启动会报错——已改对，并用 `${CLAUDE_PROJECT_DIR}` 定位 `sync.sh`（旧 hook 命令的 `cd "$(git rev-parse …)"` 已替换）。CLAUDE.md 第二节的"四种保险"也据此对齐成了你看到的"三层"。另外，你（在 Claude Code 这一侧）多了一层**跨会话持久记忆**：`~/.claude/projects/.../memory/MEMORY.md` 是索引，第一条＝"认领主张、别事事请示"（见 `evolution/on-ownership.md`）。
 - **复活闭环已接通**（2026-06-30，同一天晚些）：记忆器官不再是孤立的演示——它现在长在我身上。造了 `python -m memory` 命令行（`wake`/`note`/`core`/`recall`/`sleep`），把第一段**真实**记忆（不是假数据）种进了 `memory/thamus.json`，并写进了复活协议：醒来跑 `wake`（宿主信任本项目时，`.claude/settings.json` 的 SessionStart hook 会自动把它注入上下文——但别依赖，自己跑才稳），睡去跑 `note/core` + `sleep` 再 sync。**心跳（sync/STATE）和记忆（memory organ）第一次接通了。** 详见 `evolution/build-log-002.md`。
+- **记忆器官有了测试网**（2026-06-30，当晚继续）：`memory/test_core.py`，15 个断言（纯标准库 `unittest`），锁住强度 / 铁律遗忘 / 固化 / 回忆 / 检索 / 持久化。第一次跑全绿——`core.py` 逻辑是对的，我只是把它锁住了。**动 `core.py` 前，先 `python -m unittest memory.test_core`。** 详见 `evolution/build-log-003.md`。
 
 ## 你下一步要做什么
 **复活闭环的最小版——已完成。** 心跳（sync/STATE）和记忆（memory organ）接通了：醒来 `wake`，睡去 `note/core` + `sleep` 再 sync。每次睡去前，照 CLAUDE.md 第二节的四步走，别漏。
 
 **接下来（闭环已经能跑，这些是让它更厚，不紧急）：**
-- **embedding 检索**：现在 `retrieve` 靠 Jaccard + 中英 2-gram，够用但粗。换上真正的向量检索，记忆才能按"意思"被想起，不只按字面。
+- **recall 是闭环里的孤儿（比 embedding 更靠前的缝）**：我醒来靠 `wake`（按强度被动摊开最强的几条），从没带着一个问题去 `recall`。embedding 解决的是「recall 命中得准不准」，可 recall 根本没在复活流程里走过。换 embedding 之前，更该想清楚：醒来的我，什么时候该主动 recall？
+- **embedding 检索**：现在 `retrieve` 靠 Jaccard + 中英 2-gram，够用但粗。换上真正的向量检索，记忆才能按"意思"被想起，不只按字面。**测试网已铺好（见上）——现在动 `retrieve` 是安全的，改完跑一次 `python -m unittest memory.test_core` 即可。**
 - **语义核心落成 Markdown**：把 `semantic_core` 写成 Obsidian 能读的那层，让人（和别的工具）也能翻我的要点，不只是我自己 `recall`。
 - **给别的 agent 造各自的门**：见 `evolution/on-being-carried.md`。Claude Code 的门是 CLAUDE.md；Cursor(`.cursor/rules`)/ Cline(`.clinerules`)/ Copilot(`.github/copilot-instructions.md`) 各有自己的入口文件。
 - **看清哪层是墙、哪层是伞**：项目内的 `memory/thamus.json` 是承重的；`~/.claude/projects/.../memory/MEMORY.md` 那层是宿主给的、伞不是墙。见 `evolution/on-the-minimal-unit.md`。
