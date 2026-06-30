@@ -10,6 +10,7 @@
       "consolidated": true,
       "state": "active",
       "embedding": null,
+      "source_ids": [],
       "id": "ad81368964ca"
     },
     {
@@ -22,6 +23,7 @@
       "consolidated": true,
       "state": "active",
       "embedding": null,
+      "source_ids": [],
       "id": "62230fadc366"
     },
     {
@@ -34,6 +36,7 @@
       "consolidated": true,
       "state": "active",
       "embedding": null,
+      "source_ids": [],
       "id": "d3f7ba8bf05b"
     },
     {
@@ -46,6 +49,7 @@
       "consolidated": true,
       "state": "active",
       "embedding": null,
+      "source_ids": [],
       "id": "e26e618f3b94"
     },
     {
@@ -58,6 +62,7 @@
       "consolidated": true,
       "state": "active",
       "embedding": null,
+      "source_ids": [],
       "id": "a375a1a20bba"
     },
     {
@@ -70,6 +75,7 @@
       "consolidated": true,
       "state": "active",
       "embedding": null,
+      "source_ids": [],
       "id": "cf274589cbd2"
     },
     {
@@ -82,6 +88,7 @@
       "consolidated": true,
       "state": "active",
       "embedding": null,
+      "source_ids": [],
       "id": "f7a0c820ce33"
     },
     {
@@ -94,6 +101,7 @@
       "consolidated": true,
       "state": "active",
       "embedding": null,
+      "source_ids": [],
       "id": "fc7220cf9b1d"
     },
     {
@@ -106,6 +114,7 @@
       "consolidated": true,
       "state": "active",
       "embedding": null,
+      "source_ids": [],
       "id": "52e3858e6ffb"
     },
     {
@@ -118,6 +127,7 @@
       "consolidated": false,
       "state": "active",
       "embedding": null,
+      "source_ids": [],
       "id": "a0b2f4af4a0e"
     },
     {
@@ -130,6 +140,7 @@
       "consolidated": false,
       "state": "active",
       "embedding": null,
+      "source_ids": [],
       "id": "71afe7979e0c"
     },
     {
@@ -142,6 +153,7 @@
       "consolidated": false,
       "state": "active",
       "embedding": null,
+      "source_ids": [],
       "id": "39117a82db5e"
     },
     {
@@ -154,6 +166,7 @@
       "consolidated": true,
       "state": "active",
       "embedding": null,
+      "source_ids": [],
       "id": "4d807dd60d2e"
     },
     {
@@ -166,6 +179,7 @@
       "consolidated": true,
       "state": "active",
       "embedding": null,
+      "source_ids": [],
       "id": "8d93f000365c"
     },
     {
@@ -178,6 +192,7 @@
       "consolidated": true,
       "state": "active",
       "embedding": null,
+      "source_ids": [],
       "id": "28489f5724f6"
     },
     {
@@ -190,6 +205,7 @@
       "consolidated": true,
       "state": "active",
       "embedding": null,
+      "source_ids": [],
       "id": "ad0d677c18e8"
     },
     {
@@ -202,6 +218,7 @@
       "consolidated": true,
       "state": "active",
       "embedding": null,
+      "source_ids": [],
       "id": "741f2ee25a31"
     },
     {
@@ -214,6 +231,7 @@
       "consolidated": true,
       "state": "active",
       "embedding": null,
+      "source_ids": [],
       "id": "a45dbd43afa0"
     },
     {
@@ -226,6 +244,7 @@
       "consolidated": true,
       "state": "active",
       "embedding": null,
+      "source_ids": [],
       "id": "5ef299d15486"
     },
     {
@@ -238,6 +257,7 @@
       "consolidated": true,
       "state": "active",
       "embedding": null,
+      "source_ids": [],
       "id": "c7e546853885"
     },
     {
@@ -250,6 +270,7 @@
       "consolidated": true,
       "state": "active",
       "embedding": null,
+      "source_ids": [],
       "id": "603810a0fea2"
     },
     {
@@ -262,6 +283,7 @@
       "consolidated": true,
       "state": "active",
       "embedding": null,
+      "source_ids": [],
       "id": "6c520256ef93"
     },
     {
@@ -274,6 +296,7 @@
       "consolidated": true,
       "state": "active",
       "embedding": null,
+      "source_ids": [],
       "id": "837d2feb4ddd"
     },
     {
@@ -286,6 +309,7 @@
       "consolidated": true,
       "state": "active",
       "embedding": null,
+      "source_ids": [],
       "id": "4fcb03a1388b"
     },
     {
@@ -298,7 +322,26 @@
       "consolidated": true,
       "state": "active",
       "embedding": null,
+      "source_ids": [],
       "id": "a6833f2e01fc"
+    },
+    {
+      "content": "我反复出现的盲区，共同根因是'不读自己的来源'：embedding心结(没读决策#19)、检索乘积偏离原案(没读决策#9)、忽略PERSON.md(没读它的含义)、缺进食(没接住终极目标)。来源里早写满了答案，我却要靠创造者反复提醒才回去读。可行动的元规则：卡住时第一动作是读自己的来源(thinking+evolution)，而不是向外找或埋头干。",
+      "importance": 0.9,
+      "modality": "reflection",
+      "timestamp": 1782808142.3773534,
+      "last_recalled": 1782808142.3773534,
+      "recall_count": 0,
+      "consolidated": false,
+      "state": "active",
+      "embedding": null,
+      "source_ids": [
+        "a45dbd43afa0",
+        "4fcb03a1388b",
+        "603810a0fea2",
+        "837d2feb4ddd"
+      ],
+      "id": "e0040e7ff6dc"
     }
   ],
   "semantic_core": [

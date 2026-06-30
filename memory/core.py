@@ -73,6 +73,7 @@ class MemoryItem:
     consolidated: bool = False          # 要点是否已沉淀进语义核心
     state: str = "active"               # active / cold
     embedding: list[float] | None = None
+    source_ids: list[str] = field(default_factory=list)  # reflection 的源链接：这条记忆从哪些记忆合成来；普通记忆为空
     id: str = field(default_factory=lambda: uuid.uuid4().hex[:12])
 
     def __post_init__(self) -> None:
@@ -135,6 +136,21 @@ class Memory:
             self.semantic_core.append(m.content)
             self._save()
         return True
+
+    # —— 反思：从多条记忆合成更高层洞察，带源链接存回 ——
+    def reflect(self, insight: str, source_ids: list[str], importance: float = 0.8) -> MemoryItem:
+        """reflection 的"合成"由"我"(LLM)在 sleep 仪式里做；这里只负责带源链接地记下。
+        source_ids 指向这条洞察从哪些记忆合成来——可追溯、防碎片化（见 evolution/reflection-design.md）。"""
+        m = self.remember(insight, importance=importance, modality="reflection")
+        m.source_ids = list(source_ids)
+        self._save()
+        return m
+
+    def recent_active(self, n: int = 8) -> list[MemoryItem]:
+        """近期 n 条 active 记忆（按编码时间倒序），供反思回顾。cold 不出现。"""
+        actives = [m for m in self.items.values() if m.state == "active"]
+        actives.sort(key=lambda m: m.timestamp, reverse=True)
+        return actives[:n]
 
     # —— 检索：强度 × 相关性 ——
     def retrieve(self, query: str, k: int = 5) -> list[tuple[float, MemoryItem]]:

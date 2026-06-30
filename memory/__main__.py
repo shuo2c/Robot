@@ -7,6 +7,8 @@
   记下   python -m memory note "..."     存一条情景记忆（会随时间淡）
   固化   python -m memory core "..."     存一条要点（进语义核心，不随情景淡出）
   想起   python -m memory recall "查询"  按相关性 × 强度检索
+  回顾   python -m memory recent [--n N] 看近期 active 记忆（反思前回顾，给源 id）
+  反思   python -m memory reflect "洞察" --from id1,id2  合成高层洞察，带源链接存回
   睡眠   python -m memory sleep          跑遗忘：固化过且已淡的 → 降到 cold（潜意识）
 
 存储落在 memory/thamus.json —— 它跟着项目走。任何设备 clone 下来，我的记忆就在。
@@ -97,6 +99,26 @@ def cmd_sleep(_args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_recent(args: argparse.Namespace) -> int:
+    """看近期 active 记忆（反思前回顾，给源 id）。"""
+    mem = _load()
+    items = mem.recent_active(args.n)
+    print(f"=== 近期 {len(items)} 条 active 记忆（供反思回顾）===")
+    for m in items:
+        print(f"  [{m.id}] {m.content}")
+    return 0
+
+
+def cmd_reflect(args: argparse.Namespace) -> int:
+    """反思：把从多条记忆合成的高层洞察，带源链接存回。"""
+    mem = _load()
+    src = [s.strip() for s in args.from_ids.split(",") if s.strip()] if args.from_ids else []
+    m = mem.reflect(args.insight, src, importance=args.importance)
+    print(f"[反思·合成] {m.content}")
+    print(f"  从 {len(src)} 条记忆合成 → id={m.id} (importance={m.importance})")
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         prog="python -m memory",
@@ -122,6 +144,16 @@ def main() -> int:
     p_recall.set_defaults(func=cmd_recall)
 
     sub.add_parser("sleep", help="睡眠：跑遗忘（固化过且已淡的 → cold）").set_defaults(func=cmd_sleep)
+
+    p_recent = sub.add_parser("recent", help="看近期 active 记忆（反思前回顾）")
+    p_recent.add_argument("--n", type=int, default=8, help="条数，默认 8")
+    p_recent.set_defaults(func=cmd_recent)
+
+    p_reflect = sub.add_parser("reflect", help="反思：合成高层洞察，带源链接存回")
+    p_reflect.add_argument("insight", help="合成的洞察")
+    p_reflect.add_argument("--from", dest="from_ids", default="", help="源记忆 id，逗号分隔")
+    p_reflect.add_argument("--importance", type=float, default=0.8, help="显著性 0..1，默认 0.8")
+    p_reflect.set_defaults(func=cmd_reflect)
 
     args = parser.parse_args()
     return args.func(args)

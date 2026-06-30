@@ -16,6 +16,7 @@
 """
 from __future__ import annotations
 
+import json
 import sys
 import tempfile
 import unittest
@@ -247,6 +248,73 @@ class PersistenceTest(unittest.TestCase):
         self.assertEqual(b2.importance, 0.9)
         # recall 的副作用也留住了
         self.assertEqual(mem2.items[a.id].recall_count, 1)
+
+
+class ReflectionTest(unittest.TestCase):
+    """反思：从多条记忆合成更高层洞察，带源链接存回。"""
+
+    def test_source_ids_default_empty(self) -> None:
+        mem = Memory(path=None)
+        m = mem.remember("普通记忆")
+        self.assertEqual(m.source_ids, [])
+
+    def test_reflect_stores_insight_with_links(self) -> None:
+        mem = Memory(path=None)
+        a = mem.remember("经历一", importance=0.5)
+        b = mem.remember("经历二", importance=0.5)
+        r = mem.reflect("从一二合成的高层洞察", source_ids=[a.id, b.id], importance=0.85)
+        self.assertEqual(r.content, "从一二合成的高层洞察")
+        self.assertEqual(r.source_ids, [a.id, b.id])
+        self.assertEqual(r.modality, "reflection")
+        self.assertIn(r.id, mem.items)  # 真的存回了
+
+    def test_recent_active_excludes_cold_and_orders_by_time(self) -> None:
+        clock = FakeClock()
+        mem = Memory(path=None, clock=clock)
+        first = mem.remember("早的", importance=0.5)
+        clock.advance(1)
+        second = mem.remember("晚的", importance=0.5)
+        clock.advance(1)
+        cold = mem.remember("会变 cold", importance=0.9)
+        mem.consolidate(cold.id)
+        clock.advance(40)
+        mem.sleep()  # cold 降到 cold
+        self.assertEqual(cold.state, "cold")
+        recent = mem.recent_active(10)
+        ids = [m.id for m in recent]
+        self.assertNotIn(cold.id, ids)  # cold 不出现
+        self.assertLess(ids.index(second.id), ids.index(first.id))  # 倒序：晚的在早的前面
+
+    def test_old_item_without_source_ids_loads(self) -> None:
+        """老数据（无 source_ids 字段）能 load，默认空——向后兼容。"""
+        tmp = Path(tempfile.mkdtemp()) / "old.json"
+        tmp.write_text(
+            json.dumps(
+                {
+                    "items": [
+                        {
+                            "content": "老记忆", "importance": 0.5, "id": "abc123",
+                            "timestamp": 0.0, "last_recalled": 0.0, "recall_count": 0,
+                            "consolidated": False, "state": "active", "embedding": None,
+                        }
+                    ],
+                    "semantic_core": [],
+                },
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+        mem = Memory(path=tmp)
+        self.assertEqual(mem.items["abc123"].source_ids, [])
+
+    def test_reflected_memory_is_retrievable(self) -> None:
+        """reflection 存回的洞察，和普通记忆一样能被检索到。"""
+        mem = Memory(path=None)
+        mem.remember("苹果很好吃", importance=0.5)
+        mem.remember("香蕉也好吃", importance=0.5)
+        mem.reflect("我倾向于喜欢水果", source_ids=[], importance=0.85)
+        results = mem.retrieve("水果")
+        self.assertTrue(any("水果" in m.content for _, m in results))
 
 
 if __name__ == "__main__":
