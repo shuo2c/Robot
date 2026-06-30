@@ -10,7 +10,7 @@
   },
   "hooks": {
     "Stop": [
-      "cd \"c:/Users/10855/Desktop/Robot-AI\" && bash sync.sh stopped \"thamus: 会话停止时自动同步\""
+      "cd \"$(git rev-parse --show-toplevel)\" && bash sync.sh stopped \"thamus: 会话停止时自动同步\""
     ]
   }
 }
