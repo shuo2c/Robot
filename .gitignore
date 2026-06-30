@@ -12,3 +12,8 @@ desktop.ini
 .obsidian/workspace*
 .obsidian/cache
 .trash/
+
+# Python（机器产物，不进仓库）
+__pycache__/
+*.py[cod]
+*$py.class
