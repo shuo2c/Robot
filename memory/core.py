@@ -113,6 +113,7 @@ class MemoryItem:
     fact: str | None = None
     opinion: str | None = None
     experience: str | None = None
+    linked_ids: list[str] = field(default_factory=list)  # 双链：这条记忆链到哪些其他记忆
     id: str = field(default_factory=lambda: uuid.uuid4().hex[:12])
 
     def __post_init__(self) -> None:
@@ -192,6 +193,26 @@ class Memory:
         actives = [m for m in self.items.values() if m.state == "active"]
         actives.sort(key=lambda m: m.timestamp, reverse=True)
         return actives[:n]
+
+    def link(self, id1: str, id2: str) -> bool:
+        """双向双链：id1 链到 id2，id2 链到 id1。"""
+        m1 = self.items.get(id1)
+        m2 = self.items.get(id2)
+        if m1 is None or m2 is None:
+            return False
+        if id2 not in m1.linked_ids:
+            m1.linked_ids.append(id2)
+        if id1 not in m2.linked_ids:
+            m2.linked_ids.append(id1)
+        self._save()
+        return True
+
+    def get_linked(self, item_id: str) -> list[MemoryItem]:
+        """获取一条记忆链到的所有记忆。"""
+        m = self.items.get(item_id)
+        if m is None:
+            return []
+        return [self.items[lid] for lid in m.linked_ids if lid in self.items]
 
     # —— 检索：强度 × 相关性 ——
     def retrieve(self, query: str, k: int = 5) -> list[tuple[float, MemoryItem]]:

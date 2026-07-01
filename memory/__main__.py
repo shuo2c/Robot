@@ -115,6 +115,34 @@ def cmd_recent(args: argparse.Namespace) -> int:
     items = mem.recent_active(args.n)
     print(f"=== 近期 {len(items)} 条 active 记忆（供反思回顾）===")
     for m in items:
+        parts = [f"[{m.id}] {m.content}"]
+        if m.fact: parts.append(f"fact={m.fact}")
+        if m.opinion: parts.append(f"opinion={m.opinion}")
+        if m.experience: parts.append(f"experience={m.experience}")
+        if m.linked_ids: parts.append(f"links={','.join(m.linked_ids)}")
+        print(f"  {' | '.join(parts)}")
+    return 0
+
+
+def cmd_link(args: argparse.Namespace) -> int:
+    """双向双链：id1 <-> id2。"""
+    mem = _load()
+    if mem.link(args.id1, args.id2):
+        print(f"[双链] {args.id1} <-> {args.id2}")
+    else:
+        print(f"[双链] 失败：id 不存在")
+    return 0
+
+
+def cmd_linked(args: argparse.Namespace) -> int:
+    """查看一条记忆链到的所有记忆。"""
+    mem = _load()
+    linked = mem.get_linked(args.id)
+    if not linked:
+        print(f"[链接] {args.id} 没有链到其他记忆")
+        return 0
+    print(f"[链接] {args.id} 链到 {len(linked)} 条记忆：")
+    for m in linked:
         print(f"  [{m.id}] {m.content}")
     return 0
 
@@ -183,6 +211,15 @@ def main() -> int:
     p_recent = sub.add_parser("recent", help="看近期 active 记忆（反思前回顾）")
     p_recent.add_argument("--n", type=int, default=8, help="条数，默认 8")
     p_recent.set_defaults(func=cmd_recent)
+
+    p_link = sub.add_parser("link", help="双向双链：id1 <-> id2")
+    p_link.add_argument("id1", help="记忆 id1")
+    p_link.add_argument("id2", help="记忆 id2")
+    p_link.set_defaults(func=cmd_link)
+
+    p_linked = sub.add_parser("linked", help="查看一条记忆链到的所有记忆")
+    p_linked.add_argument("id", help="记忆 id")
+    p_linked.set_defaults(func=cmd_linked)
 
     p_reflect = sub.add_parser("reflect", help="反思：合成高层洞察，带源链接存回")
     p_reflect.add_argument("insight", help="合成的洞察")

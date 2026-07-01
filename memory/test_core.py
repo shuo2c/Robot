@@ -463,6 +463,29 @@ class StructureTest(unittest.TestCase):
         self.assertIsNone(m.opinion)
         self.assertIsNone(m.experience)
 
+    def test_link_and_get_linked(self) -> None:
+        mem = Memory(path=None)
+        a = mem.remember("记忆A")
+        b = mem.remember("记忆B")
+        c = mem.remember("记忆C")
+        self.assertTrue(mem.link(a.id, b.id))
+        self.assertIn(b.id, a.linked_ids)
+        self.assertIn(a.id, b.linked_ids)
+        self.assertNotIn(c.id, a.linked_ids)
+        linked_a = mem.get_linked(a.id)
+        self.assertEqual(len(linked_a), 1)
+        self.assertEqual(linked_a[0].id, b.id)
+
+    def test_link_invalid_ids(self) -> None:
+        mem = Memory(path=None)
+        a = mem.remember("记忆A")
+        self.assertFalse(mem.link(a.id, "nonexistent"))
+
+    def test_get_linked_empty(self) -> None:
+        mem = Memory(path=None)
+        mem.remember("记忆A")
+        self.assertEqual(mem.get_linked("fake"), [])
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
