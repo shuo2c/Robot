@@ -424,5 +424,45 @@ class EmbeddingTest(unittest.TestCase):
             core._ollama_embed = orig
 
 
+class StructureTest(unittest.TestCase):
+    """记忆结构化：fact/opinion/experience 字段。"""
+
+    def test_structured_fields_stored_and_loaded(self) -> None:
+        mem = Memory(path=None)
+        m = mem.remember("测试", fact="这是一个事实", opinion="这是我的判断", experience="这是我的经历")
+        self.assertEqual(m.fact, "这是一个事实")
+        self.assertEqual(m.opinion, "这是我的判断")
+        self.assertEqual(m.experience, "这是我的经历")
+
+    def test_backward_compat_without_structure(self) -> None:
+        """老数据无 fact/opinion/experience → 默认 None。"""
+        tmp = Path(tempfile.mkdtemp()) / "old_struct.json"
+        tmp.write_text(
+            json.dumps({
+                "items": [{
+                    "content": "老记忆", "importance": 0.5, "id": "old123",
+                    "timestamp": 0.0, "last_recalled": 0.0, "recall_count": 0,
+                    "consolidated": False, "state": "active", "embedding": None,
+                    "source_ids": [],
+                    # 没有 fact/opinion/experience
+                }],
+                "semantic_core": [],
+            }, ensure_ascii=False),
+            encoding="utf-8",
+        )
+        mem = Memory(path=tmp)
+        self.assertIsNone(mem.items["old123"].fact)
+        self.assertIsNone(mem.items["old123"].opinion)
+        self.assertIsNone(mem.items["old123"].experience)
+
+    def test_partial_structure(self) -> None:
+        """只有 fact，没有 opinion/experience。"""
+        mem = Memory(path=None)
+        m = mem.remember("只有事实", fact="这是一个事实")
+        self.assertEqual(m.fact, "这是一个事实")
+        self.assertIsNone(m.opinion)
+        self.assertIsNone(m.experience)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

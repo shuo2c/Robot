@@ -108,7 +108,11 @@ class MemoryItem:
     consolidated: bool = False          # 要点是否已沉淀进语义核心
     state: str = "active"               # active / cold
     embedding: list[float] | None = None
-    source_ids: list[str] = field(default_factory=list)  # reflection 的源链接：这条记忆从哪些记忆合成来；普通记忆为空
+    source_ids: list[str] = field(default_factory=list)  # reflection 的源链接
+    # 结构化记忆：不是替换 content，是补充。content 是全文，fact/opinion/experience 是结构化摘要。
+    fact: str | None = None
+    opinion: str | None = None
+    experience: str | None = None
     id: str = field(default_factory=lambda: uuid.uuid4().hex[:12])
 
     def __post_init__(self) -> None:
@@ -139,11 +143,13 @@ class Memory:
 
     # —— 编码 ——
     def remember(
-        self, content: str, importance: float = 0.5, modality: str = "text"
+        self, content: str, importance: float = 0.5, modality: str = "text",
+        fact: str | None = None, opinion: str | None = None, experience: str | None = None,
     ) -> MemoryItem:
         now = self.clock()
-        m = MemoryItem(content=content, importance=importance, modality=modality)
-        m.timestamp = now       # 用注入的时钟打时间戳（默认是墙钟）
+        m = MemoryItem(content=content, importance=importance, modality=modality,
+                       fact=fact, opinion=opinion, experience=experience)
+        m.timestamp = now
         m.last_recalled = now
         self.items[m.id] = m
         self._save()

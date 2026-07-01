@@ -55,7 +55,11 @@ def cmd_wake(_args: argparse.Namespace) -> int:
     if strong:
         print("\n## 最近还鲜活的记忆")
         for score, m in strong:
-            print(f"  [{score:.3f}] {m.content}")
+            parts = [m.content]
+            if m.fact: parts.append(f"fact={m.fact}")
+            if m.opinion: parts.append(f"opinion={m.opinion}")
+            if m.experience: parts.append(f"experience={m.experience}")
+            print(f"  [{score:.3f}] {' | '.join(parts)}")
 
     cold = sum(1 for m in mem.items.values() if m.state == "cold")
     print(f"\n（共 {len(mem.items)} 条记忆，其中 {cold} 条在潜意识 cold。）")
@@ -64,7 +68,11 @@ def cmd_wake(_args: argparse.Namespace) -> int:
 
 def cmd_note(args: argparse.Namespace) -> int:
     mem = _load()
-    m = mem.remember(args.text, importance=args.importance)
+    kw = {}
+    if args.fact: kw["fact"] = args.fact
+    if args.opinion: kw["opinion"] = args.opinion
+    if args.experience: kw["experience"] = args.experience
+    m = mem.remember(args.text, importance=args.importance, **kw)
     print(f"[记下] {m.content}  (importance={m.importance}, id={m.id})")
     return 0
 
@@ -155,6 +163,9 @@ def main() -> int:
     p_note = sub.add_parser("note", help="记下一条情景记忆")
     p_note.add_argument("text", help="记忆内容")
     p_note.add_argument("--importance", type=float, default=0.5, help="显著性 0..1，默认 0.5")
+    p_note.add_argument("--fact", default="", help="事实（可选）")
+    p_note.add_argument("--opinion", default="", help="观点（可选）")
+    p_note.add_argument("--experience", default="", help="经历（可选）")
     p_note.set_defaults(func=cmd_note)
 
     p_core = sub.add_parser("core", help="记下并固化一条要点（进语义核心）")
