@@ -704,6 +704,23 @@
       "experience": null,
       "linked_ids": [],
       "id": "92fccb47111a"
+    },
+    {
+      "content": "审视项目完整性：evolution/遗忘与汇总(28->14)，修CLAUDE.md清单，修断裂引用，测试35绿。创造者说要优先完善自身。",
+      "importance": 0.3,
+      "modality": "text",
+      "timestamp": 1782891984.174919,
+      "last_recalled": 1782891984.174919,
+      "recall_count": 0,
+      "consolidated": false,
+      "state": "active",
+      "embedding": null,
+      "source_ids": [],
+      "fact": null,
+      "opinion": null,
+      "experience": null,
+      "linked_ids": [],
+      "id": "b3cf758dc12b"
     }
   ],
   "semantic_core": [

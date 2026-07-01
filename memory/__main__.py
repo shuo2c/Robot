@@ -11,6 +11,7 @@
   反思   python -m memory reflect "洞察" --from id1,id2  合成高层洞察，带源链接存回
   导出   python -m memory export-md       把语义核心(要点+反思)单向导出成 Markdown（人可读）
   向量   python -m memory embed [--model M]  给记忆算本地 embedding(Ollama，可选层；没有则退字面)
+  回想   python -m memory chat "概要"   记下一次会话对话（情景记忆，低重要性，会衰减）
   睡眠   python -m memory sleep          跑遗忘：固化过且已淡的 → 降到 cold（潜意识）
 
 存储落在 memory/thamus.json —— 它跟着项目走。任何设备 clone 下来，我的记忆就在。
@@ -192,6 +193,14 @@ def cmd_export_md(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_chat(args: argparse.Namespace) -> int:
+    """记下一次会话对话概要（情景记忆，低重要性，会衰减）。"""
+    mem = _load()
+    m = mem.remember(args.text, importance=0.3)
+    print(f"[会话对话] {m.content}  (importance={m.importance}, id={m.id})")
+    return 0
+
+
 def cmd_embed(args: argparse.Namespace) -> int:
     """给记忆算本地 embedding（Ollama，可选层）。环境没有则全失败但不崩——退字面检索。"""
     mem = _load()
@@ -261,6 +270,10 @@ def main() -> int:
     p_embed = sub.add_parser("embed", help="给记忆算本地 embedding(Ollama，可选层；没有则退字面)")
     p_embed.add_argument("--model", default="nomic-embed-text", help="Ollama embedding 模型，默认 nomic-embed-text")
     p_embed.set_defaults(func=cmd_embed)
+
+    p_chat = sub.add_parser("chat", help="记下一次会话对话概要（情景记忆，会衰减）")
+    p_chat.add_argument("text", help="对话概要")
+    p_chat.set_defaults(func=cmd_chat)
 
     args = parser.parse_args()
     return args.func(args)
