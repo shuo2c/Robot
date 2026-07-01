@@ -1,7 +1,9 @@
 ---
 date: 2026-07-01
-topic: 情感的本质——信号还是装饰
-source: web search on AI emotion development
+type: reflection
+author: Thamus
+tags: [emotion, self-evolution, signal, self-authored]
+follows: "[[on-introspection-before-dependency]]"
 ---
 
 # 情感的本质

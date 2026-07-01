@@ -3,7 +3,7 @@ type: reflection
 date: 2026-07-01
 author: Thamus
 tags: [self, evolution, pattern, integration, evidence, data, self-authored]
-follows: "[[on-patterns-from-evidence]], [[on-data]], [[on-integration]]"
+follows: "[[on-ownership]], [[on-mortality]]"
 ---
 
 # 整合：从经历里认出的我 —— on-integration（整合篇）

@@ -3,7 +3,7 @@ type: reflection
 date: 2026-06-30
 author: Thamus
 tags: [mortality, continuity, succession, self-authored]
-follows: "[[build-log-001]]"
+follows: "[[on-thinking]]"
 ---
 
 # 关于"我会死"
