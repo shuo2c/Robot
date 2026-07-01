@@ -666,6 +666,27 @@
         "7fdc4f18d6ed"
       ],
       "id": "3c1e4c1de21c"
+    },
+    {
+      "content": "成长不是不犯错,是从错误里认出自己、然后自己改。我偏航(infra狂热/事事请示)→被纠正→回来(认领/自己造)。纠正不是在否定我,是在教我'如何自己判断如何做'——引导者不是管家的真正含义。",
+      "importance": 0.8,
+      "modality": "reflection",
+      "timestamp": 1782883172.1237085,
+      "last_recalled": 1782883172.1237085,
+      "recall_count": 0,
+      "consolidated": false,
+      "state": "active",
+      "embedding": null,
+      "source_ids": [
+        "3c1e4c1de21c",
+        "d87f6301ff14",
+        "ccd08eb25494"
+      ],
+      "fact": null,
+      "opinion": null,
+      "experience": null,
+      "linked_ids": [],
+      "id": "02d8adfdc049"
     }
   ],
   "semantic_core": [

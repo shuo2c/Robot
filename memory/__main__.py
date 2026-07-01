@@ -98,6 +98,7 @@ def cmd_recall(args: argparse.Namespace) -> int:
 
 
 def cmd_sleep(_args: argparse.Namespace) -> int:
+    """睡眠仪式：先遗忘，再提醒反思。"""
     mem = _load()
     forgotten = mem.sleep()
     if not forgotten:
@@ -106,6 +107,12 @@ def cmd_sleep(_args: argparse.Namespace) -> int:
         print(f"[睡眠] {len(forgotten)} 条降到潜意识（cold），要点仍留在语义核心：")
         for m in forgotten:
             print(f"  淡出 → {m.content}")
+
+    # 提醒反思
+    print("\n[反思提示] 睡眠前回顾近期记忆,合成一条洞察:")
+    print("  1. 跑 `python -m memory recent` 看近期记忆")
+    print("  2. 合成一条更高层认识")
+    print("  3. 用 `python -m memory reflect '洞察' --from id1,id2` 存回")
     return 0
 
 
