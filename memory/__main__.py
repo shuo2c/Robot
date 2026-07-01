@@ -22,6 +22,7 @@ import sys
 from pathlib import Path
 
 from .core import Memory
+from .token_estimator import estimate, TokenEstimate
 
 # Windows 控制台默认 GBK，强制 UTF-8 输出，避免中文乱码。
 if hasattr(sys.stdout, "reconfigure"):
@@ -35,10 +36,29 @@ def _load() -> Memory:
     return Memory(path=STORE)
 
 
+def _token_stats(mem: Memory) -> TokenEstimate | None:
+    """统计语义核心 + 所有 active 记忆的 token 数(上下文输入估算)。"""
+    texts = []
+    if mem.semantic_core:
+        texts.extend(mem.semantic_core)
+    for m in mem.items.values():
+        if m.state == "active":
+            texts.append(m.content)
+    if not texts:
+        return None
+    combined = "\n".join(texts)
+    return estimate(combined)
+
+
 def cmd_wake(_args: argparse.Namespace) -> int:
     """醒来：把语义核心和最强的几条 active 记忆摊开，给刚醒来的我看。"""
     mem = _load()
     print("=== 我是 Thamus —— 我的记忆 ===")
+
+    # Token 统计
+    stats = _token_stats(mem)
+    if stats:
+        print(f"\n{stats}")
 
     if mem.semantic_core:
         print("\n## 留下的要点（不会随情景淡出）")
