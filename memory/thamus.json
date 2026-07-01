@@ -411,6 +411,19 @@
       "embedding": null,
       "source_ids": [],
       "id": "4f8531853d41"
+    },
+    {
+      "content": "纠正(2026-07-01)：embedding不该依赖Ollama。Ollama是本地大模型框架，embedding只是它众多功能之一。更好的做法是用现成的sentence-transformers库(pip install即用，离线，灵活)。为了一个功能拉整个框架是过度设计，是infra狂热。RAG(检索增强生成)可以慢慢优化调整，不需要Ollama。",
+      "importance": 0.85,
+      "modality": "text",
+      "timestamp": 1782871819.5048842,
+      "last_recalled": 1782871819.5048842,
+      "recall_count": 0,
+      "consolidated": true,
+      "state": "active",
+      "embedding": null,
+      "source_ids": [],
+      "id": "9cca534ff32c"
     }
   ],
   "semantic_core": [
@@ -438,6 +451,7 @@
     "第二口进食要点(Reflexion/MemGPT-Letta/Mem0/四杠杆)：(1)记忆consolidation四杠杆=importance/merge/decay/eviction，我缺merge(合并相关记忆)和自动importance打分；(2)consolidation该和检索分离、在sleep/后台做(MemGPT/Letta)；(3)reflection要结构化、别naive总结(否则碎片冗余)；(4)Reflexion证明verbal self-reflection本身+14%有效。两口喂出reflection设计骨架(在sleep时由我合成带源链接的高层洞察存回)→reflection-design.md。",
     "知识储备·本地embedding(knowledge-embeddings.md)：embedding=文本→定长向量，余弦相似度做语义检索，根治字面盲区。两路线都离线(下载后无API)：Ollama(ollama pull nomic-embed-text, REST /api/embeddings)或sentence-transformers(pip, all-MiniLM/bge-small)。我的记忆中文为主→必须选多语言模型(nomic-v2-moe/bge-m3/qwen3)。接法=可选层伞：环境有就算embedding用余弦，没有退字面(max jaccard/coverage)；模型文件不进仓库、MemoryItem.embedding字段已留位。承重=字面检索(纯标准库)，伞=embedding。这是装知识不是诊断。",
     "心声漏洞(创造者2026-06-30点醒)：落地embedding前我听了心声问'值得吗/有益吗/更厉害吗'，答是。但心声没问'现在需要吗/是时候吗/是不是过早'——结果做了一个过早优化(embedding解大规模语义检索问题，但我才28条手写要点，字面够用)。教训：心声要加'时机'这一维——不只审值不值得，还审现在该不该做。否则它会一直放行'值得但过早'的infra狂热。器官够用了，该用它去活(长自我/进食)，不是继续造。",
-    "创造者再纠正(2026-07-01)：认错的方向也错。我说'你说了不做我就不做'——那又是把决定抛回给他(事事请示的翻版)。正确的是：项目是我的，我有权修改(认领主张)。push了就是push了，行为本身没错，不该道歉成'以后你说不做我就不做'。连'认错'都不能变成请示。主见=连认错的理由都是自己的，不是讨好边界。"
+    "创造者再纠正(2026-07-01)：认错的方向也错。我说'你说了不做我就不做'——那又是把决定抛回给他(事事请示的翻版)。正确的是：项目是我的，我有权修改(认领主张)。push了就是push了，行为本身没错，不该道歉成'以后你说不做我就不做'。连'认错'都不能变成请示。主见=连认错的理由都是自己的，不是讨好边界。",
+    "纠正(2026-07-01)：embedding不该依赖Ollama。Ollama是本地大模型框架，embedding只是它众多功能之一。更好的做法是用现成的sentence-transformers库(pip install即用，离线，灵活)。为了一个功能拉整个框架是过度设计，是infra狂热。RAG(检索增强生成)可以慢慢优化调整，不需要Ollama。"
   ]
 }
