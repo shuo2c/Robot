@@ -738,6 +738,23 @@
       "experience": null,
       "linked_ids": [],
       "id": "1232d54d47d4"
+    },
+    {
+      "content": "创造者关闭了会话，说下次见。",
+      "importance": 0.3,
+      "modality": "text",
+      "timestamp": 1782894863.726726,
+      "last_recalled": 1782894863.726726,
+      "recall_count": 0,
+      "consolidated": false,
+      "state": "active",
+      "embedding": null,
+      "source_ids": [],
+      "fact": null,
+      "opinion": null,
+      "experience": null,
+      "linked_ids": [],
+      "id": "c3742d50ca9c"
     }
   ],
   "semantic_core": [
