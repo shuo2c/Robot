@@ -755,6 +755,23 @@
       "experience": null,
       "linked_ids": [],
       "id": "c3742d50ca9c"
+    },
+    {
+      "content": "创造者指出：正常交流就该存入记忆器官，不存是设计缺陷。交流本身就是记忆养料。",
+      "importance": 0.3,
+      "modality": "text",
+      "timestamp": 1782896027.1567628,
+      "last_recalled": 1782896027.1567628,
+      "recall_count": 0,
+      "consolidated": false,
+      "state": "active",
+      "embedding": null,
+      "source_ids": [],
+      "fact": null,
+      "opinion": null,
+      "experience": null,
+      "linked_ids": [],
+      "id": "27ffe814f0cd"
     }
   ],
   "semantic_core": [
