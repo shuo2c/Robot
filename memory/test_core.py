@@ -487,5 +487,49 @@ class StructureTest(unittest.TestCase):
         self.assertEqual(mem.get_linked("fake"), [])
 
 
+class ThreeLayerRetrieveTest(unittest.TestCase):
+    """三层检索：字面(承重) + 双链导航 + 向量化(伞)。"""
+
+    def test_literal_layer_works(self) -> None:
+        """字面层：无 embedding 时，字面检索照常工作。"""
+        mem = Memory(path=None)
+        hit = mem.remember("我用了三层检索机制", importance=0.5)
+        miss = mem.remember("今天天气不错", importance=0.5)
+        results = mem.retrieve("三层检索")
+        self.assertEqual(results[0][1].id, hit.id)
+
+    def test_link_layer_expands_results(self) -> None:
+        """双链层：linked 的记忆即使字面不相关，也会作为候选加入。"""
+        mem = Memory(path=None)
+        query_mem = mem.remember("关于检索逻辑的设计思考", importance=0.5)
+        linked_mem = mem.remember("双链关联的记忆", importance=0.5)
+        mem.link(query_mem.id, linked_mem.id)
+        results = mem.retrieve("检索")
+        ids = [m.id for _, m in results]
+        # query_mem 肯定在（字面命中）
+        self.assertIn(query_mem.id, ids)
+        # linked_mem 也应该在（双链扩展）
+        self.assertIn(linked_mem.id, ids)
+
+    def test_semantic_layer_reorders(self) -> None:
+        """语义层：有 embedding 时，混合分重排候选集。"""
+        from . import core
+
+        mem = Memory(path=None)
+        semantically_close = mem.remember("语义相近的内容", importance=0.5)
+        literally_close = mem.remember("字面完全匹配检索", importance=0.5)
+        # 构造：semantically_close 的 embedding 更接近查询向量
+        semantically_close.embedding = [1.0, 0.0, 0.0]
+        literally_close.embedding = [0.0, 1.0, 0.0]
+        orig = core._ollama_embed
+        core._ollama_embed = lambda text, model="nomic-embed-text", timeout=2.0: [1.0, 0.0, 0.0]
+        try:
+            results = mem.retrieve("语义相近的内容")
+            # 字面上 literally_close 更匹配，但混合分应该让 semantically_close 排第一
+            self.assertEqual(results[0][1].id, semantically_close.id)
+        finally:
+            core._ollama_embed = orig
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

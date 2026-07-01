@@ -772,6 +772,23 @@
       "experience": null,
       "linked_ids": [],
       "id": "27ffe814f0cd"
+    },
+    {
+      "content": "创造者指出检索三层机制（字面/双链/向量化）只有一层活着，要求全部启用。我修改了core.py的retrieve方法，加入双链导航扩展和语义混合精排。测试38条全绿。",
+      "importance": 0.3,
+      "modality": "text",
+      "timestamp": 1782896927.5549505,
+      "last_recalled": 1782896927.5549505,
+      "recall_count": 0,
+      "consolidated": false,
+      "state": "active",
+      "embedding": null,
+      "source_ids": [],
+      "fact": null,
+      "opinion": null,
+      "experience": null,
+      "linked_ids": [],
+      "id": "4177ed615991"
     }
   ],
   "semantic_core": [

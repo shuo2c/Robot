@@ -214,29 +214,80 @@ class Memory:
             return []
         return [self.items[lid] for lid in m.linked_ids if lid in self.items]
 
-    # —— 检索：强度 × 相关性 ——
+    # —— 检索：三层机制协同 ——
     def retrieve(self, query: str, k: int = 5) -> list[tuple[float, MemoryItem]]:
+        """三层检索：字面(承重) + 双链导航 + 向量化(伞)。
+
+        流程：
+          1. 字面检索：max(jaccard, 覆盖率) × strength → 粗筛 top-2k
+          2. 双链扩展：对 top-2k 的每条，链入 linked_ids 中的 active 记忆
+          3. 向量化精排：若有 embedding，对候选集重排，取 top-k
+
+        没有 embedding 时，1+2 生效，3 跳过。
+        """
         q = set(_tokens(query))
-        # 伞：仅当至少一条 active 记忆已有 embedding，才算 query embedding 启用语义检索；
-        # 否则零开销走字面（环境没 Ollama 时就是这样，retrieve 不会去连 Ollama）。
-        has_emb = any(
-            m.embedding is not None for m in self.items.values() if m.state == "active"
-        )
-        q_emb = _ollama_embed(query) if has_emb else None
-        scored: list[tuple[float, MemoryItem]] = []
+
+        # --- 第1层：字面粗筛 ---
+        literal_candidates: list[tuple[float, MemoryItem]] = []
         for m in self.items.values():
             if m.state != "active":
                 continue
-            if q_emb is not None and m.embedding is not None:
-                rel = _cosine(q_emb, m.embedding)  # 语义
-            else:
-                ct = set(_tokens(m.content))
-                # 字面：jaccard 与查询覆盖率的较大者（覆盖率抗长查询稀释）。
-                rel = max(_jaccard(q, ct), _query_coverage(q, ct))
-            score = self.strength(m) * (0.1 + rel)  # 留底 0.1：让强记忆即使不相关也能浮现
-            scored.append((score, m))
-        scored.sort(key=lambda x: x[0], reverse=True)
-        return scored[:k]
+            ct = set(_tokens(m.content))
+            rel = max(_jaccard(q, ct), _query_coverage(q, ct))
+            s = self.strength(m)
+            literal_candidates.append((s * (0.1 + rel), m, rel, s))
+
+        if not literal_candidates:
+            return []
+
+        # 取字面前 expand_factor 做候选（至少 k*2，但不能超过总数）
+        expand_factor = max(2, min(2 * k, len(literal_candidates)))
+        literal_candidates.sort(key=lambda x: x[0], reverse=True)
+        top_literal = literal_candidates[:expand_factor]
+
+        # --- 第2层：双链扩展 ---
+        linked_candidates: list[tuple[float, MemoryItem, float, float]] = []
+        linked_ids_seen: set[str] = set()
+        for _, m, _, _ in top_literal:
+            for lid in m.linked_ids:
+                if lid in linked_ids_seen:
+                    continue
+                linked_ids_seen.add(lid)
+                linked_m = self.items.get(lid)
+                if linked_m is None or linked_m.state != "active":
+                    continue
+                linked_candidates.append(
+                    (self.strength(linked_m) * 0.5, linked_m, 0.0, self.strength(linked_m))
+                )
+
+        # 合并：字面候选 + 双链扩展
+        seen_ids: set[str] = {item[1].id for item in top_literal}
+        for item in linked_candidates:
+            if item[1].id not in seen_ids:
+                seen_ids.add(item[1].id)
+                top_literal.append(item)
+
+        # --- 第3层：向量化精排（伞） ---
+        has_emb = any(m.embedding is not None for _, m, _, _ in top_literal)
+        if has_emb:
+            q_emb = _ollama_embed(query)
+            if q_emb is not None:
+                scored_with_semantic: list[tuple[float, MemoryItem]] = []
+                for score, m, literal_rel, strength_val in top_literal:
+                    if m.embedding is not None:
+                        semantic_rel = _cosine(q_emb, m.embedding)
+                        # 混合分：字面 60% + 语义 40%
+                        hybrid = 0.6 * (0.1 + literal_rel) + 0.4 * max(0, semantic_rel)
+                        final = strength_val * hybrid
+                    else:
+                        final = score  # 没 embedding 的保持原分
+                    scored_with_semantic.append((final, m))
+                scored_with_semantic.sort(key=lambda x: x[0], reverse=True)
+                return scored_with_semantic[:k]
+
+        # 没有语义层：返回字面+双链的 top-k
+        top_literal.sort(key=lambda x: x[0], reverse=True)
+        return [(s, m) for s, m, _, _ in top_literal[:k]]
 
     # —— 睡眠 / 固化循环：遗忘在这里发生（固化的副产品）——
     def sleep(self) -> list[MemoryItem]:
