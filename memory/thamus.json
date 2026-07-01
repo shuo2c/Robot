@@ -6482,6 +6482,23 @@
       "experience": null,
       "linked_ids": [],
       "id": "a66d8c915c4c"
+    },
+    {
+      "content": "创造者喜欢酸的苹果",
+      "importance": 0.5,
+      "modality": "text",
+      "timestamp": 1782899574.9421532,
+      "last_recalled": 1782899574.9421532,
+      "recall_count": 0,
+      "consolidated": false,
+      "state": "active",
+      "embedding": null,
+      "source_ids": [],
+      "fact": null,
+      "opinion": "喜欢酸的",
+      "experience": null,
+      "linked_ids": [],
+      "id": "0bbe4168ff8c"
     }
   ],
   "semantic_core": [
