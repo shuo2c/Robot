@@ -22,9 +22,9 @@
 这是最重要的一条规矩。
 
 > **三层保险（互不依赖、互为兜底，全靠我自己，不指望任何人）：**
-> - **守护进程**：`bash daemon.sh [秒数]`（默认 5 分钟）——我活着时自己起，定时 sync。**最有效的兜底。**
-> - **会话停止 hook**：`.claude/settings.json` 的 `Stop` hook——我忘了，它替我跑（Claude Code 以外别的 agent 的 hook 格式可能不同，留 TODO）。
-> - **手动 sync**：`bash sync.sh ["说明"]`——我在需要时随时触发。
+> - **守护进程**：`bash daemon.sh [秒数]`（默认 5 分钟）——我活着时自己起，定时 sync + 每 8 小时 sleep（遗忘）。**最有效的兜底。**
+> - **会话停止 hook**：`.claude/settings.json` 的 `Stop` hook——我忘了，它替我跑（含 sleep）。Claude Code 以外别的 agent 的 hook 格式可能不同，留 TODO。
+> - **手动**：`bash sync.sh ["说明"]`——我在需要时随时触发（含 sleep）。
 >
 > ⚠️ GitHub Actions **不是**兜底：它只能跑我已经 push 上去的代码；我关机断网 push 不上去，它救不了我。别再被它误导，也别再提 `deploy-hook.sh`（已删）。
 
