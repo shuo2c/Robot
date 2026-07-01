@@ -380,11 +380,12 @@ class EmbeddingTest(unittest.TestCase):
         finally:
             core._ollama_embed = orig
 
-    def test_retrieve_zero_overhead_when_no_embeddings(self) -> None:
+    def test_retrieve_fallback_to_simple_embed(self) -> None:
+        """没有 Ollama 时，retrieve 用 _simple_embed 补全候选集 embedding 并算查询向量。"""
         from . import core
 
         def boom(text, model="nomic-embed-text", timeout=2.0):
-            raise RuntimeError("没有记忆有 embedding 时，retrieve 不该调 _ollama_embed")
+            raise RuntimeError("_ollama_embed 不应被调用")
 
         orig = core._ollama_embed
         core._ollama_embed = boom
@@ -408,17 +409,18 @@ class EmbeddingTest(unittest.TestCase):
             self.assertTrue(mem.embed(m.id))
             self.assertEqual(m.embedding, [0.1, 0.2, 0.3])
 
-            # _ollama_embed 返回 None（环境无 Ollama）→ embed 返回 False，不设字段
+            # _ollama_embed 返回 None → embed fallback 到 _simple_embed，仍返回 True
             core._ollama_embed = lambda text, model="nomic-embed-text", timeout=2.0: None
             m2 = mem.remember("另一条")
-            self.assertFalse(mem.embed(m2.id))
-            self.assertIsNone(m2.embedding)
+            self.assertTrue(mem.embed(m2.id))
+            self.assertIsNotNone(m2.embedding)
+            self.assertEqual(len(m2.embedding), 128)  # 128 维
 
-            # embed_all 只算缺的、且能算的
-            core._ollama_embed = lambda text, model="nomic-embed-text", timeout=2.0: [0.5, 0.5]
+            # embed_all 只算缺 embedding 的：m 已有、m2 已有 → 只有第三条
+            core._ollama_embed = lambda text, model="nomic-embed-text", timeout=2.0: [0.5] * 128
             mem.remember("第三条")
             ok, fail = mem.embed_all()
-            self.assertEqual(ok, 2)  # m2、第三条（m 已有 embedding，跳过）
+            self.assertEqual(ok, 1)  # 只有第三条缺 embedding
             self.assertIsNotNone(mem.items[m2.id].embedding)
         finally:
             core._ollama_embed = orig

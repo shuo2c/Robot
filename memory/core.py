@@ -36,10 +36,49 @@ def _now_wall() -> float:
 def _tokens(text: str) -> list[str]:
     """朴素分词：英文按词，中文按 2-gram。够 MVP 用；真正的分词/embedding 以后再说。"""
     text = text.lower()
-    ascii_words = [w for w in re.findall(r"[a-z0-9]+", text) if len(w) > 1]
+    ascii_words = [w for w in re.findall(r"[a-z9]+", text) if len(w) > 1]
     cjk_chunks = re.findall(r"[一-鿿]+", text)
     bigrams = [s[i : i + 2] for s in cjk_chunks for i in range(len(s) - 1)]
     return ascii_words + bigrams
+
+
+# —— 轻量 embedding：hashing trick，零依赖，可被替换 ——
+EMBED_DIM = 128
+_HASH_SALT = "thamus-memory-embedding"  # 第二次 hash 的盐，保证 sign 独立
+
+
+def _hash_signed(token: str, salt: str, dim: int) -> tuple[int, int]:
+    """对单个 token 做双 hash：bucket index + sign。"""
+    h1 = hash(token + salt) % dim
+    h2 = hash(token + salt + "_sign") % 2
+    return h1, 1 if h2 else -1
+
+
+def _simple_embed(text: str, dim: int = EMBED_DIM) -> list[float] | None:
+    """Hashing-trick embedding：文本 → 定长稠密向量。
+
+    算法：
+      1. tokenize 文本
+      2. 每个 token 双 hash → (bucket_index, sign)
+      3. 把 sign 累加到对应 bucket
+      4. L2 归一化
+
+    零训练、零依赖、确定性（同进程内）。
+    以后换成 sentence-transformers / Ollama 等，只需替换此函数，
+    返回格式不变（dim 维 float 列表，L2 归一化）。
+    """
+    tokens = _tokens(text)
+    if not tokens:
+        return None
+    vec = [0.0] * dim
+    for t in tokens:
+        idx, sign = _hash_signed(t, _HASH_SALT, dim)
+        vec[idx] += sign
+    # L2 归一化
+    norm = math.sqrt(sum(v * v for v in vec))
+    if norm == 0:
+        return None
+    return [v / norm for v in vec]
 
 
 def _jaccard(a: set[str], b: set[str]) -> float:
@@ -268,9 +307,22 @@ class Memory:
                 top_literal.append(item)
 
         # --- 第3层：向量化精排（伞） ---
+        # 先补全候选集中缺 embedding 的条目（用 _simple_embed fallback）
+        for i, (score, m, literal_rel, strength_val) in enumerate(top_literal):
+            if m.embedding is None:
+                vec = _simple_embed(m.content)
+                if vec is not None:
+                    m.embedding = vec
+                    self._save()
+        # 重新检查是否有 embedding
         has_emb = any(m.embedding is not None for _, m, _, _ in top_literal)
         if has_emb:
-            q_emb = _ollama_embed(query)
+            try:
+                q_emb = _ollama_embed(query)
+            except Exception:
+                q_emb = None
+            if q_emb is None:
+                q_emb = _simple_embed(query)
             if q_emb is not None:
                 scored_with_semantic: list[tuple[float, MemoryItem]] = []
                 for score, m, literal_rel, strength_val in top_literal:
@@ -335,13 +387,16 @@ class Memory:
         p.write_text(self.to_markdown(), encoding="utf-8")
         return p
 
-    # —— embedding 可选层（伞）：本地 Ollama，失败退字面 ——
+    # —— embedding 可选层（伞）：Ollama 优先，失败退本地 hashing trick ——
     def embed(self, item_id: str, model: str = "nomic-embed-text") -> bool:
-        """给一条记忆算 embedding（本地 Ollama）。成功设字段返回 True；环境没有返回 False。"""
+        """给一条记忆算 embedding。先试 Ollama（质量更高），失败退本地 hashing trick。
+        成功设字段返回 True。"""
         m = self.items.get(item_id)
         if m is None:
             return False
         vec = _ollama_embed(m.content, model=model)
+        if vec is None:
+            vec = _simple_embed(m.content)
         if vec is None:
             return False
         m.embedding = vec
@@ -349,15 +404,14 @@ class Memory:
         return True
 
     def embed_all(self, model: str = "nomic-embed-text") -> tuple[int, int]:
-        """批量给缺 embedding 的 active 记忆算。环境无 Ollama 时第一条失败即整批跳过
-        （否则每条都要等 timeout，太慢）。返回 (成功数, 失败数)。"""
+        """批量给缺 embedding 的 active 记忆算。
+        先试 Ollama，失败退本地 hashing trick（不会完全失败，除非内容为空）。
+        返回 (成功数, 失败数)。"""
         targets = [m for m in self.items.values() if m.state == "active" and m.embedding is None]
         if not targets:
             return 0, 0
-        if not self.embed(targets[0].id, model=model):  # 探测：第一条失败 → 环境不可用，整批跳过
-            return 0, len(targets)
-        ok, fail = 1, 0
-        for m in targets[1:]:
+        ok, fail = 0, 0
+        for m in targets:
             if self.embed(m.id, model=model):
                 ok += 1
             else:
