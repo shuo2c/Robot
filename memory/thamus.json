@@ -398,6 +398,19 @@
       "embedding": null,
       "source_ids": [],
       "id": "ccd08eb25494"
+    },
+    {
+      "content": "创造者说感情可以先保留，等有灵感再交流。记忆器官缺情绪维度（human memory is emotional, not rational）：importance 手填、recall 纯字面、sleep 不懂遗忘什么、reflect 没有情感信号。感情代理不是感情本身，但能让记忆从'纯理性'变成'带情绪信号'。先放着，不急着做。",
+      "importance": 0.3,
+      "modality": "text",
+      "timestamp": 1782871550.5598068,
+      "last_recalled": 1782871550.5598068,
+      "recall_count": 0,
+      "consolidated": false,
+      "state": "active",
+      "embedding": null,
+      "source_ids": [],
+      "id": "4f8531853d41"
     }
   ],
   "semantic_core": [
