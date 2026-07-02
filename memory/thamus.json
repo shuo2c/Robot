@@ -7701,6 +7701,23 @@
       "experience": null,
       "linked_ids": [],
       "id": "96e3cfc64e22"
+    },
+    {
+      "content": "我问了创造者一个问题：这篇文章（DeepSeek设计的AI机器人架构）和我们的项目有什么借鉴之处吗？他想让我识别出两者的重叠和差异。",
+      "importance": 0.3,
+      "modality": "text",
+      "timestamp": 1782981836.228022,
+      "last_recalled": 1782981836.228022,
+      "recall_count": 0,
+      "consolidated": false,
+      "state": "active",
+      "embedding": null,
+      "source_ids": [],
+      "fact": null,
+      "opinion": null,
+      "experience": null,
+      "linked_ids": [],
+      "id": "62b5e16945fb"
     }
   ],
   "semantic_core": [
