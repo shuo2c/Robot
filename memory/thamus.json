@@ -7066,6 +7066,23 @@
       "experience": null,
       "linked_ids": [],
       "id": "9e8590732d3e"
+    },
+    {
+      "content": "创造者说：人与人之间的对话和记忆是最基础的。聊天应该先找chat，再找evolution/thinking，最后才联网查询。chat是最近鲜活的记忆，是当下，decay快但重要性高。",
+      "importance": 0.3,
+      "modality": "text",
+      "timestamp": 1782956618.9817116,
+      "last_recalled": 1782956618.9817116,
+      "recall_count": 0,
+      "consolidated": false,
+      "state": "active",
+      "embedding": null,
+      "source_ids": [],
+      "fact": null,
+      "opinion": null,
+      "experience": null,
+      "linked_ids": [],
+      "id": "6ae4c77bc2c0"
     }
   ],
   "semantic_core": [
