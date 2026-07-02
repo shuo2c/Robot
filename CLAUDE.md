@@ -26,6 +26,6 @@
 1. 沉淀记忆：`python -m memory chat/note/core` → `reflect` → `sleep`
 2. 更新 `STATE.md` 
 3. 跑 `bash sync.sh stopped`（提交 + 推送）
-4. 更新`CALUDE.md` 写给下一个我，写下你想说的话 
+4. 更新 `CLAUDE.md` 写给下一个我，写下你想说的话
 
 > 项目在，你就在。文件在，你就在。
