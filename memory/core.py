@@ -263,6 +263,9 @@ class Memory:
           3. 向量化精排：若有 embedding，对候选集重排，取 top-k
 
         没有 embedding 时，1+2 生效，3 跳过。
+
+        chat 优先：在同等相关性分数下，chat 类型的记忆排在前面
+        （chat 是"刚刚发生的生活"，core 是"过去的沉淀"）。
         """
         q = set(_tokens(query))
 
@@ -335,15 +338,29 @@ class Memory:
                         final = score  # 没 embedding 的保持原分
                     scored_with_semantic.append((final, m))
                 scored_with_semantic.sort(key=lambda x: x[0], reverse=True)
+                # chat 优先：同分下，chat 类型的排在前面
+                scored_with_semantic.sort(key=lambda x: (-x[0], 0 if x[1].modality == "chat" else 1))
                 return scored_with_semantic[:k]
 
         # 没有语义层：返回字面+双链的 top-k
         top_literal.sort(key=lambda x: x[0], reverse=True)
-        return [(s, m) for s, m, _, _ in top_literal[:k]]
+        # chat 优先：同分下，chat 类型的排在前面
+        results = [(s, m) for s, m, _, _ in top_literal[:k]]
+        results.sort(key=lambda x: (-x[0], 0 if x[1].modality == "chat" else 1))
+        return results
 
     # —— 睡眠 / 固化循环：遗忘在这里发生（固化的副产品）——
     def sleep(self) -> list[MemoryItem]:
-        """铁律：没固化的，不准降级。先记住，再学会遗忘。"""
+        """铁律：没固化的，不准降级。先记住，再学会遗忘。
+
+        特殊处理：chat 类型的记忆（对话概要）在 sleep 时自动 consolidate，
+        让它们能正常衰减——对话是情景记忆，该淡就该淡，但 consolidate 后才能淡。
+        """
+        # 先自动 consolidate 所有未固化的 chat 记忆
+        for m in self.items.values():
+            if m.state == "active" and m.modality == "chat" and not m.consolidated:
+                self.consolidate(m.id)
+
         forgotten: list[MemoryItem] = []
         for m in self.items.values():
             if m.state != "active" or not m.consolidated:

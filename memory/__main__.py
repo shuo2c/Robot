@@ -80,7 +80,12 @@ def cmd_wake(_args: argparse.Namespace) -> int:
             if m.fact: parts.append(f"fact={m.fact}")
             if m.opinion: parts.append(f"opinion={m.opinion}")
             if m.experience: parts.append(f"experience={m.experience}")
-            print(f"  [{score:.3f}] {' | '.join(parts)}")
+            label = ""
+            if m.modality == "chat":
+                label = " [对话]"
+            elif m.modality == "reflection":
+                label = " [反思]"
+            print(f"  [{score:.3f}]{label} {' | '.join(parts)}")
 
     cold = sum(1 for m in mem.items.values() if m.state == "cold")
     print(f"\n（共 {len(mem.items)} 条记忆，其中 {cold} 条在潜意识 cold。）")

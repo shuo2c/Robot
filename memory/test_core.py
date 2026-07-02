@@ -190,7 +190,8 @@ class RetrieveTest(unittest.TestCase):
         打破"纯本地"，留给未来。）
         """
         clock = FakeClock()
-        mem = Memory(path=None, clock=clock)
+        tmp = Path(tempfile.mkdtemp()) / "query_coverage.json"
+        mem = Memory(path=tmp, clock=clock)
         hit = mem.remember("我喜欢吃苹果和香蕉", importance=0.5)
         miss = mem.remember("今天去了图书馆借了一本书", importance=0.95)
         results = mem.retrieve("苹果味道怎么样")
@@ -531,6 +532,56 @@ class ThreeLayerRetrieveTest(unittest.TestCase):
             self.assertEqual(results[0][1].id, semantically_close.id)
         finally:
             core._ollama_embed = orig
+
+
+class ChatPriorityTest(unittest.TestCase):
+    """chat 类型记忆在 recall 中优先（同分下排在前面）。"""
+
+    def test_chat_ranks_before_other_same_score(self) -> None:
+        """同分下，chat 类型的记忆排在 text 前面。"""
+        clock = FakeClock()
+        tmp = Path(tempfile.mkdtemp()) / "chat_priority.json"
+        mem = Memory(path=tmp, clock=clock)
+        chat_m = mem.remember("一段对话内容", importance=0.5, modality="chat")
+        text_m = mem.remember("一段文本内容", importance=0.5, modality="text")
+        # 用 mock 确保分数完全相同：patch strength 返回固定值
+        from memory import core
+        orig_strength = mem.strength
+        mem.strength = lambda m: 0.5  # 固定强度，确保分数相同
+        try:
+            results = mem.retrieve("xyzabc")
+            self.assertTrue(results)
+            self.assertEqual(results[0][1].id, chat_m.id)
+        finally:
+            mem.strength = orig_strength
+
+    def test_sleep_automatic_consolidate_chat(self) -> None:
+        """sleep 时 chat 记忆自动 consolidate，才能正常衰减。"""
+        clock = FakeClock()
+        tmp = Path(tempfile.mkdtemp()) / "sleep_chat.json"
+        mem = Memory(path=tmp, clock=clock)
+        c = mem.remember("一段对话", importance=0.3, modality="chat")
+        self.assertFalse(c.consolidated)
+        clock.advance(30)  # 足够久
+        forgotten = mem.sleep()
+        # chat 已自动 consolidate，现在可以正常衰减
+        self.assertTrue(c.consolidated)
+        # 如果强度已低于阈值，应该被降为 cold
+        self.assertEqual(c.state, "cold")
+
+
+class SleepChatConsolidationTest(unittest.TestCase):
+    """sleep 自动 consolidate chat 记忆（不影响其他类型）。"""
+
+    def test_non_chat_not_auto_consolidated(self) -> None:
+        """非 chat 类型不被自动 consolidate（铁律保护）。"""
+        clock = FakeClock()
+        mem = Memory(path=None, clock=clock)
+        t = mem.remember("普通记忆", importance=0.5, modality="text")
+        clock.advance(30)
+        mem.sleep()
+        self.assertFalse(t.consolidated)  # 没被自动 consolidate
+        self.assertEqual(t.state, "active")  # 铁律保护，不降级
 
 
 if __name__ == "__main__":
