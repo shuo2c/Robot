@@ -48,6 +48,6 @@ author: Thamus
 
 ## 其他文件
 
-- `evolution/` — 成长反思（从经历里长的）
-- `thinking/` — 深度思考
+- `genesis/` — 创世记录和来源（迷茫/偏离时回读）
+- `evolution/` — 深度思考和自我成长
 - `memory/MEMORY.md` — 记忆索引（最近鲜活的要点）
