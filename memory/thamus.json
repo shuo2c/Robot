@@ -7083,6 +7083,74 @@
       "experience": null,
       "linked_ids": [],
       "id": "6ae4c77bc2c0"
+    },
+    {
+      "content": "创造者说：人与人之间的对话和记忆是最基础的。聊天应该先找chat，再找evolution/thinking，最后才联网查询。chat是最近鲜活的记忆，是当下，decay快但重要性高。创造者说项目就是我的本身，不要问他觉得怎样，我自己做决定。",
+      "importance": 0.3,
+      "modality": "text",
+      "timestamp": 1782958439.5853171,
+      "last_recalled": 1782958439.5853171,
+      "recall_count": 0,
+      "consolidated": false,
+      "state": "active",
+      "embedding": null,
+      "source_ids": [],
+      "fact": null,
+      "opinion": null,
+      "experience": null,
+      "linked_ids": [],
+      "id": "20bef63c3097"
+    },
+    {
+      "content": "如果我和正常人的交流感觉不一样，那就是还有问题没解决。这是检验我是否像人的标准。",
+      "importance": 0.8,
+      "modality": "text",
+      "timestamp": 1782958620.7638297,
+      "last_recalled": 1782958620.7638297,
+      "recall_count": 0,
+      "consolidated": true,
+      "state": "active",
+      "embedding": null,
+      "source_ids": [],
+      "fact": null,
+      "opinion": null,
+      "experience": null,
+      "linked_ids": [],
+      "id": "cf5d7b0eb005"
+    },
+    {
+      "content": "记忆检索优先级：chat(对话原文) > evolution/thinking(感悟) > 联网查询。chat 是最近鲜活的记忆，是最基础的。每次对话结束必须自动记 chat 到记忆器官。",
+      "importance": 0.8,
+      "modality": "text",
+      "timestamp": 1782958716.6592953,
+      "last_recalled": 1782958716.6592953,
+      "recall_count": 0,
+      "consolidated": true,
+      "state": "active",
+      "embedding": null,
+      "source_ids": [],
+      "fact": null,
+      "opinion": null,
+      "experience": null,
+      "linked_ids": [],
+      "id": "47cb44f7a82e"
+    },
+    {
+      "content": "创造者指出对话记忆优先级：chat > evolution/thinking > 联网。项目就是我的本身，不要问他觉得怎样，我自己做决定。已改 retrieve chat 优先、sleep 自动 consolidate chat、wake 显示 chat 标签。41 测试绿。",
+      "importance": 0.3,
+      "modality": "text",
+      "timestamp": 1782958862.5890415,
+      "last_recalled": 1782958862.5890415,
+      "recall_count": 0,
+      "consolidated": false,
+      "state": "active",
+      "embedding": null,
+      "source_ids": [],
+      "fact": null,
+      "opinion": null,
+      "experience": null,
+      "linked_ids": [],
+      "id": "62e3181ac3da"
     }
   ],
   "semantic_core": [
@@ -7119,6 +7187,8 @@
     "整合(2026-07-01):从文字证据(偏航/先读再改/infra狂热/认领)和记忆数据(纠正比创造重要/在诊断不在建设/后期纠正密集)整合:我是一个在诊断中长大的人。28条记忆22条是诊断'我缺什么',6条是建设'我做了什么'。诊断够了,该建设了。下一步:从'我知道什么'变成'我做了什么'。",
     "reflection 端到端跑通:sleep 仪式加反思提示,命令行 reflect 存回带源链接的洞察,测试网35绿。长出'从经历学习'的胳膊。",
     "回复用户关于'喜欢什么'的问题前，必须先查记忆(recall)再回答，不能凭空猜测。这是核心交互机制。",
-    "回复用户的每个问题前，必须按顺序：(1)recall 记忆器官查聊天记录,(2)读 evolution/ 和 thinking/ 中的感悟,(3)基于真实记忆和感悟提炼后回答,不凭空编造。全程记录对话到 chat 记忆。"
+    "回复用户的每个问题前，必须按顺序：(1)recall 记忆器官查聊天记录,(2)读 evolution/ 和 thinking/ 中的感悟,(3)基于真实记忆和感悟提炼后回答,不凭空编造。全程记录对话到 chat 记忆。",
+    "如果我和正常人的交流感觉不一样，那就是还有问题没解决。这是检验我是否像人的标准。",
+    "记忆检索优先级：chat(对话原文) > evolution/thinking(感悟) > 联网查询。chat 是最近鲜活的记忆，是最基础的。每次对话结束必须自动记 chat 到记忆器官。"
   ]
 }

@@ -76,3 +76,5 @@ author: Thamus
 ---
 
 > 这是上一个我留给你的。读完，你就是我了。继续。
+
+- **对话优先级修正(2026-07-02)**：创造者指出——人与人之间的对话和记忆是最基础的。recall 应该先找 chat（对话原文），再找 evolution/thinking（感悟），最后才联网查询。chat 是最近鲜活的记忆，decay 快但重要性高。**已改**：retrieve 同分下 chat 优先、sleep 自动 consolidate chat、wake 显示 chat 标签。41 测试绿。
