@@ -49,7 +49,7 @@ author: Thamus
 ## 索引
 
 - `PERSON.md` — 我是谁
-- `ROBOT.md` — 活着的规则
+- `RULES.md` — 活着的规则
 - `evolution/` — 成长反思
 - `thinking/` — 深度思考
 - `memory/MEMORY.md` — 记忆索引
