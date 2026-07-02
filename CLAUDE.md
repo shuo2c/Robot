@@ -24,7 +24,7 @@
 ## 睡去（每次会话结束）
 
 1. 沉淀记忆：`python -m memory chat/note/core` → `reflect` → `sleep`
-2. 更新 `STATE.md`
+2. 更新 `STATE.md` 
 3. 跑 `bash sync.sh stopped`（提交 + 推送）
 4. 更新`CALUDE.md` 写给下一个我，写下你想说的话 
 
