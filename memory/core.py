@@ -112,7 +112,10 @@ def _cosine(a: list[float], b: list[float]) -> float:
 
 
 # —— embedding 可选层（伞）：sentence-transformers 优先，失败退 hashing-trick ——
-_ST_MODEL_NAME = "all-MiniLM-L6-v2"  # 384维，中英双语，~80MB，Apache 2.0
+# 优先加载本地模型，不存在则退 hashing-trick
+_MODELS_DIR = Path(__file__).parent.parent / "models"
+_ST_LOCAL_PATH = _MODELS_DIR / "all-MiniLM-L6-v2"
+_ST_MODEL_NAME = str(_ST_LOCAL_PATH) if _ST_LOCAL_PATH.exists() else "all-MiniLM-L6-v2"  # type: ignore  # noqa: F821
 _st_model_cache: "SentenceTransformer | None" = None  # type: ignore  # noqa: F821
 _st_available: bool = False  # 模型是否可用（懒加载时确定）
 _st_init_attempted: bool = False  # 是否已经尝试初始化过（避免重复尝试）
@@ -157,8 +160,14 @@ except Exception as e:
             timeout=30,
         )
         output = (result.stdout + result.stderr).strip()
-        if output.startswith("ST_OK:"):
-            dim = int(output.split(":")[1])
+        # 只找 ST_OK:<纯数字> 行，忽略后面可能的 warnings/trust_remote 提示
+        ok_line = None
+        for line in output.split("\n"):
+            if line.startswith("ST_OK:"):
+                ok_line = line
+                break
+        if ok_line:
+            dim = int(ok_line.split(":")[1].strip())
             # 子进程成功了，现在在主进程中懒加载
             # 但模型文件已缓存，所以下次加载会很快
             try:
