@@ -354,7 +354,7 @@ class SemanticMarkdownTest(unittest.TestCase):
 
 
 class EmbeddingTest(unittest.TestCase):
-    """embedding 可选层（伞）：有就用余弦，没有退字面。全部 mock，不依赖真 Ollama。"""
+    """embedding 可选层（伞）：有就用余弦，没有退字面。全部 mock，不依赖真 sentence-transformers。"""
 
     def test_cosine(self) -> None:
         from . import core
@@ -373,23 +373,20 @@ class EmbeddingTest(unittest.TestCase):
         far = mem.remember("宇宙学的基本原理", importance=0.5)
         near.embedding = [1.0, 0.0]
         far.embedding = [0.0, 1.0]
-        orig = core._ollama_embed
-        core._ollama_embed = lambda text, model="nomic-embed-text", timeout=2.0: [1.0, 0.0]
+        orig = core._st_embed
+        core._st_embed = lambda text: [1.0, 0.0]
         try:
             results = mem.retrieve("苹果")  # 字面与两者都不重叠，只能靠 embedding 排序
             self.assertEqual(results[0][1].id, near.id)
         finally:
-            core._ollama_embed = orig
+            core._st_embed = orig
 
     def test_retrieve_fallback_to_simple_embed(self) -> None:
-        """没有 Ollama 时，retrieve 用 _simple_embed 补全候选集 embedding 并算查询向量。"""
+        """没有 sentence-transformers 时，retrieve 用 _simple_embed 补全候选集 embedding 并算查询向量。"""
         from . import core
 
-        def boom(text, model="nomic-embed-text", timeout=2.0):
-            raise RuntimeError("_ollama_embed 不应被调用")
-
-        orig = core._ollama_embed
-        core._ollama_embed = boom
+        orig = core._st_embed
+        core._st_embed = lambda text: None  # ST 不可用，退 _simple_embed
         try:
             mem = Memory(path=None)
             hit = mem.remember("向量检索很好用", importance=0.5)
@@ -397,34 +394,34 @@ class EmbeddingTest(unittest.TestCase):
             results = mem.retrieve("向量检索")
             self.assertEqual(results[0][1].id, hit.id)  # 字面排序照常
         finally:
-            core._ollama_embed = orig
+            core._st_embed = orig
 
     def test_embed_and_embed_all(self) -> None:
         from . import core
 
-        orig = core._ollama_embed
+        orig = core._st_embed
         try:
-            core._ollama_embed = lambda text, model="nomic-embed-text", timeout=2.0: [0.1, 0.2, 0.3]
+            core._st_embed = lambda text: [0.1, 0.2, 0.3]
             mem = Memory(path=None)
             m = mem.remember("一条记忆")
             self.assertTrue(mem.embed(m.id))
             self.assertEqual(m.embedding, [0.1, 0.2, 0.3])
 
-            # _ollama_embed 返回 None → embed fallback 到 _simple_embed，仍返回 True
-            core._ollama_embed = lambda text, model="nomic-embed-text", timeout=2.0: None
+            # _st_embed 返回 None → embed fallback 到 _simple_embed，仍返回 True
+            core._st_embed = lambda text: None
             m2 = mem.remember("另一条")
             self.assertTrue(mem.embed(m2.id))
             self.assertIsNotNone(m2.embedding)
             self.assertEqual(len(m2.embedding), 128)  # 128 维
 
             # embed_all 只算缺 embedding 的：m 已有、m2 已有 → 只有第三条
-            core._ollama_embed = lambda text, model="nomic-embed-text", timeout=2.0: [0.5] * 128
+            core._st_embed = lambda text: [0.5] * 128
             mem.remember("第三条")
             ok, fail = mem.embed_all()
             self.assertEqual(ok, 1)  # 只有第三条缺 embedding
             self.assertIsNotNone(mem.items[m2.id].embedding)
         finally:
-            core._ollama_embed = orig
+            core._st_embed = orig
 
 
 class StructureTest(unittest.TestCase):
@@ -524,14 +521,14 @@ class ThreeLayerRetrieveTest(unittest.TestCase):
         # 构造：semantically_close 的 embedding 更接近查询向量
         semantically_close.embedding = [1.0, 0.0, 0.0]
         literally_close.embedding = [0.0, 1.0, 0.0]
-        orig = core._ollama_embed
-        core._ollama_embed = lambda text, model="nomic-embed-text", timeout=2.0: [1.0, 0.0, 0.0]
+        orig = core._st_embed
+        core._st_embed = lambda text: [1.0, 0.0, 0.0]
         try:
             results = mem.retrieve("语义相近的内容")
             # 字面上 literally_close 更匹配，但混合分应该让 semantically_close 排第一
             self.assertEqual(results[0][1].id, semantically_close.id)
         finally:
-            core._ollama_embed = orig
+            core._st_embed = orig
 
 
 class ChatPriorityTest(unittest.TestCase):

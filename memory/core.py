@@ -114,23 +114,88 @@ def _cosine(a: list[float], b: list[float]) -> float:
 # —— embedding 可选层（伞）：sentence-transformers 优先，失败退 hashing-trick ——
 _ST_MODEL_NAME = "all-MiniLM-L6-v2"  # 384维，中英双语，~80MB，Apache 2.0
 _st_model_cache: "SentenceTransformer | None" = None  # type: ignore  # noqa: F821
+_st_available: bool = False  # 模型是否可用（懒加载时确定）
+_st_init_attempted: bool = False  # 是否已经尝试初始化过（避免重复尝试）
+
+
+def _init_st() -> bool:
+    """初始化 sentence-transformers 模型。首次调用时懒加载。
+
+    使用 subprocess + timeout 确保模型下载失败时不会挂起主进程。
+    """
+    global _st_model_cache, _st_available, _st_init_attempted
+    if _st_available:
+        return True
+    if _st_init_attempted:
+        return False  # 已经失败过，不再重试
+    _st_init_attempted = True
+
+    try:
+        import subprocess
+        import sys
+        import tempfile
+        # 用子进程初始化，超时后 kill
+        code = """
+import socket
+socket.setdefaulttimeout(5)
+import os
+os.environ['TRANSFORMERS_NO_ADVISORY_WARNINGS'] = '1'
+os.environ['HF_HUB_DISABLE_TELEMETRY'] = '1'
+try:
+    from sentence_transformers import SentenceTransformer
+    m = SentenceTransformer(_MODEL_NAME, device='cpu')
+    # 测试 encode 是否正常
+    v = m.encode('test')
+    print(f'ST_OK:{len(v)}')
+except Exception as e:
+    print(f'ST_FAIL:{type(e).__name__}')
+""".replace('_MODEL_NAME', repr(_ST_MODEL_NAME))
+        result = subprocess.run(
+            [sys.executable, "-c", code],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        output = (result.stdout + result.stderr).strip()
+        if output.startswith("ST_OK:"):
+            dim = int(output.split(":")[1])
+            # 子进程成功了，现在在主进程中懒加载
+            # 但模型文件已缓存，所以下次加载会很快
+            try:
+                import socket
+                socket.setdefaulttimeout(5)
+                from sentence_transformers import SentenceTransformer  # type: ignore
+                _st_model_cache = SentenceTransformer(_ST_MODEL_NAME, device="cpu")
+                _st_available = True
+                return True
+            except Exception:
+                pass
+            finally:
+                try:
+                    socket.setdefaulttimeout(None)
+                except Exception:
+                    pass
+        # 子进程失败或主进程加载失败
+        return False
+    except (subprocess.TimeoutExpired, OSError):
+        return False
 
 
 def _st_embed(text: str) -> list[float] | None:
     """用 sentence-transformers 算 embedding。
 
-    第一次调用时懒加载模型（自动下载 ~80MB，之后缓存）。
+    首次调用时懒加载模型（自动下载 ~80MB，之后缓存）。
     失败时返回 None → 退 hashing-trick。
     """
-    global _st_model_cache
-    try:
-        if _st_model_cache is None:
-            from sentence_transformers import SentenceTransformer  # type: ignore
-            _st_model_cache = SentenceTransformer(_ST_MODEL_NAME)
-        vec = _st_model_cache.encode(text, normalize_embeddings=True)
-        return vec.tolist()
-    except Exception:
-        return None
+    if _st_init_attempted and not _st_available:
+        return None  # 已确认不可用，直接退
+    if _init_st():
+        try:
+            vec = _st_model_cache.encode(text, normalize_embeddings=True)  # type: ignore
+            return vec.tolist()
+        except Exception:
+            return None
+    return None
 
 
 def _ollama_embed(
@@ -452,7 +517,7 @@ class Memory:
             return 0, 0
         ok, fail = 0, 0
         for m in targets:
-            if self.embed(m.id, model=model):
+            if self.embed(m.id):
                 ok += 1
             else:
                 fail += 1
