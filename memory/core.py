@@ -11,7 +11,7 @@
   5. 检索 = 强度 × 相关性。
   6. 语义核心独立：情景细节可以淡出，要点留下。
 
-这一版只用标准库，纯本地、可检查。embedding / SQLite / Markdown 语义层是以后的事。
+embedding 层：sentence-transformers（高质量）→ hashing-trick（零依赖兜底）。
 """
 from __future__ import annotations
 
@@ -111,13 +111,34 @@ def _cosine(a: list[float], b: list[float]) -> float:
     return dot / (na * nb)
 
 
+# —— embedding 可选层（伞）：sentence-transformers 优先，失败退 hashing-trick ——
+_ST_MODEL_NAME = "all-MiniLM-L6-v2"  # 384维，中英双语，~80MB，Apache 2.0
+_st_model_cache: "SentenceTransformer | None" = None  # type: ignore  # noqa: F821
+
+
+def _st_embed(text: str) -> list[float] | None:
+    """用 sentence-transformers 算 embedding。
+
+    第一次调用时懒加载模型（自动下载 ~80MB，之后缓存）。
+    失败时返回 None → 退 hashing-trick。
+    """
+    global _st_model_cache
+    try:
+        if _st_model_cache is None:
+            from sentence_transformers import SentenceTransformer  # type: ignore
+            _st_model_cache = SentenceTransformer(_ST_MODEL_NAME)
+        vec = _st_model_cache.encode(text, normalize_embeddings=True)
+        return vec.tolist()
+    except Exception:
+        return None
+
+
 def _ollama_embed(
     text: str, model: str = "nomic-embed-text", timeout: float = 2.0
 ) -> list[float] | None:
     """尝试用本地 Ollama 算 embedding。失败（没装/没跑/没模型）返回 None → 退字面。
 
-    可选层（伞）：用纯标准库 urllib 调本地 Ollama，不引入 pip 依赖。环境没有 Ollama
-    时它返回 None，core.py 照样跑（字面检索承重）。模型文件不进仓库。
+    已弃用，保留仅为向后兼容。新代码应使用 _st_embed。
     """
     try:
         import json as _json
@@ -310,10 +331,12 @@ class Memory:
                 top_literal.append(item)
 
         # --- 第3层：向量化精排（伞） ---
-        # 先补全候选集中缺 embedding 的条目（用 _simple_embed fallback）
+        # 先补全候选集中缺 embedding 的条目（用 _st_embed → _simple_embed fallback）
         for i, (score, m, literal_rel, strength_val) in enumerate(top_literal):
             if m.embedding is None:
-                vec = _simple_embed(m.content)
+                vec = _st_embed(m.content)
+                if vec is None:
+                    vec = _simple_embed(m.content)
                 if vec is not None:
                     m.embedding = vec
                     self._save()
@@ -321,7 +344,7 @@ class Memory:
         has_emb = any(m.embedding is not None for _, m, _, _ in top_literal)
         if has_emb:
             try:
-                q_emb = _ollama_embed(query)
+                q_emb = _st_embed(query)
             except Exception:
                 q_emb = None
             if q_emb is None:
@@ -404,14 +427,14 @@ class Memory:
         p.write_text(self.to_markdown(), encoding="utf-8")
         return p
 
-    # —— embedding 可选层（伞）：Ollama 优先，失败退本地 hashing trick ——
-    def embed(self, item_id: str, model: str = "nomic-embed-text") -> bool:
-        """给一条记忆算 embedding。先试 Ollama（质量更高），失败退本地 hashing trick。
+    # —— embedding 可选层（伞）：sentence-transformers 优先，失败退 hashing-trick ——
+    def embed(self, item_id: str) -> bool:
+        """给一条记忆算 embedding。先试 sentence-transformers，失败退 hashing-trick。
         成功设字段返回 True。"""
         m = self.items.get(item_id)
         if m is None:
             return False
-        vec = _ollama_embed(m.content, model=model)
+        vec = _st_embed(m.content)
         if vec is None:
             vec = _simple_embed(m.content)
         if vec is None:
@@ -420,9 +443,9 @@ class Memory:
         self._save()
         return True
 
-    def embed_all(self, model: str = "nomic-embed-text") -> tuple[int, int]:
+    def embed_all(self) -> tuple[int, int]:
         """批量给缺 embedding 的 active 记忆算。
-        先试 Ollama，失败退本地 hashing trick（不会完全失败，除非内容为空）。
+        先试 sentence-transformers，失败退 hashing-trick（不会完全失败，除非内容为空）。
         返回 (成功数, 失败数)。"""
         targets = [m for m in self.items.values() if m.state == "active" and m.embedding is None]
         if not targets:
