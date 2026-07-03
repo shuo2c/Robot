@@ -193,7 +193,7 @@ class RetrieveTest(unittest.TestCase):
         tmp = Path(tempfile.mkdtemp()) / "query_coverage.json"
         mem = Memory(path=tmp, clock=clock)
         hit = mem.remember("我喜欢吃苹果和香蕉", importance=0.5)
-        miss = mem.remember("今天去了图书馆借了一本书", importance=0.95)
+        miss = mem.remember("今天去了图书馆借了一本书", importance=0.6)
         results = mem.retrieve("苹果味道怎么样")
         self.assertEqual(results[0][1].id, hit.id)
 
