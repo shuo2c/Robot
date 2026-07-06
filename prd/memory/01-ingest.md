@@ -54,7 +54,6 @@ status: draft
 | `timestamp` | float | 时间戳 |
 | `id` | str | 12 位十六进制 ID |
 | `importance` | float | 重要性 [0,1]，简化时评估 |
-| `state` | str | `active` / `cold` |
 | `consolidated` | bool | 是否已固化 |
 | `embedding` | list[float] | 语义向量，简化时计算 |
 | `linked_ids` | list[str] | 关联的其他记录 ID |

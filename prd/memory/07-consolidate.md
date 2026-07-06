@@ -25,8 +25,8 @@ status: draft
 5. **固化**：标记重要记忆
 6. **向量化**：计算 embedding
 7. **建链**：建立 linked_ids 关联
-8. **遗忘**：低 importance 记录降为 cold
+8. **删除**：importance < 0.3 的记录直接删除
 
 ## 输出
 
-简化后文件内的记录携带完整元数据：importance、state、consolidated、embedding、linked_ids。
+简化后文件内的记录携带完整元数据：importance、consolidated、embedding、linked_ids。
