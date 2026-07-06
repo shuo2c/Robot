@@ -1,6 +1,6 @@
 ---
 title: 遗忘与固化
-version: 0.3
+version: 0.4
 date: 2026-07-06
 status: draft
 ---
@@ -28,6 +28,6 @@ status: draft
 
 ## 铁律
 
-- **没固化不准忘**：consolidated = false 的记录永不删除
-- **遗忘即删除**：importance < 0.3 的记录直接删除，释放空间和检索开销
+- **没固化不准忘**：consolidated = false 的记录永不删除（即使 importance < 0.3）
+- **遗忘即删除**：importance < 0.3 且 consolidated = true 的记录直接删除，释放空间和检索开销
 - **遗忘后可再生**：下次遇到相同主题，重新评估权重即可，不是问题

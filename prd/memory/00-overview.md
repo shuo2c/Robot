@@ -1,6 +1,6 @@
 ---
 title: 记忆存储 — 总纲
-version: 0.3
+version: 0.4
 date: 2026-07-06
 status: draft
 ---

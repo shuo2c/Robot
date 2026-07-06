@@ -1,6 +1,6 @@
 ---
 title: 类型判断与分流
-version: 0.3
+version: 0.4
 date: 2026-07-06
 status: draft
 ---
@@ -9,7 +9,7 @@ status: draft
 
 ## 写入时不分类
 
-原始消息写入时不做任何分类，只记录 role/content/timestamp/id。
+原始消息写入时不做任何分类，只记录 turn/user/assistant/timestamp/id。
 
 ## 简化时分类
 

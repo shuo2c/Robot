@@ -45,9 +45,7 @@ status: draft
 | `timestamp` | float | 对话时间戳 |
 | `id` | str | 12 位十六进制 ID |
 
-## 每条记录携带的元数据
-
-简化时补充：
+## 简化时补充的元数据
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
@@ -55,5 +53,6 @@ status: draft
 | `consolidated` | bool | 是否已固化 |
 | `embedding` | list[float] | 语义向量，整轮对话一个向量 |
 | `linked_ids` | list[str] | 关联的其他记录 ID |
+| `recall_count` | int | 被检索到的次数 |
 
 写入时只填 turn/user/assistant/timestamp/id，其余字段在简化时补充。

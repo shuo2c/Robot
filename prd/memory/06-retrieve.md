@@ -1,6 +1,6 @@
 ---
 title: 检索机制
-version: 0.3
+version: 0.4
 date: 2026-07-06
 status: draft
 ---
@@ -24,7 +24,9 @@ status: draft
 2. **BM25 搜索**：匹配关键词
 3. **向量搜索**：匹配语义
 4. **合并排序**：BM25 分 + 向量分，取 top-k
-5. 返回结果
+5. **双链扩展**：对返回结果的 linked_ids 中的记录也加入结果集（强度 × 0.5）
+6. **更新 recall_count**：每条被返回的记录 recall_count + 1
+7. 返回结果
 
 ## 参数
 
@@ -33,3 +35,8 @@ status: draft
 | Top-K | 10 | 返回条数上限 |
 | 相似度截断 | 0.65 | 低于此值不返回 |
 | BM25 权重 | 0.5 | 与向量分各占一半 |
+
+## recall_count 的作用
+
+- 每次检索时 + 1
+- 简化时检查：recall_count > 5 且 importance < 0.5 → importance + 0.1（被频繁检索的记忆自动提升权重）
