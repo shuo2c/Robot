@@ -21,11 +21,22 @@ status: draft
 1. **扫描**：读取当日所有文件
 2. **分类**：LLM 判断每条记录的类型（事实/观点/经验/噪音）
 3. **提纯**：压缩冗余内容，保留语义核心
-4. **评分**：评估 importance
-5. **固化**：标记重要记忆
-6. **向量化**：计算 embedding
-7. **建链**：建立 linked_ids 关联
-8. **删除**：importance < 0.3 的记录直接删除
+4. **评分**：LLM 评估每条记录的初始 importance [0,1]
+5. **引用加成**：统计每条记录被多少其他记录的 linked_ids 引用，引用越多 importance 越高
+
+| 引用次数 | importance 加成 |
+|------|------|
+| 0 | 无 |
+| 1-2 | +0.1 |
+| 3-5 | +0.2 |
+| 5+ | +0.3 |
+
+加分后 importance 上限为 1.0。
+
+6. **固化**：标记重要记忆（importance > 0.7 且 consolidated = false → consolidated = true）
+7. **向量化**：计算 embedding
+8. **建链**：建立 linked_ids 关联
+9. **删除**：importance < 0.3 的记录直接删除
 
 ## 输出
 
