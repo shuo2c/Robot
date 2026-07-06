@@ -34,7 +34,7 @@ status: draft
 
 加分后 importance 上限为 1.0。
 
-7. **固化**：标记重要记忆（importance > 0.7 且 consolidated = false → consolidated = true）
+7. **固化**：LLM 判断是否为长期重要记忆（自我认知、关键决策、明确纠正），是则标记 consolidated = true
 8. **向量化**：计算 embedding
 9. **检索增强**：检查 recall_count > 5 且 importance < 0.5 → importance + 0.1
 10. **删除**：importance < 0.3 且 consolidated = true 的记录直接删除
