@@ -1,49 +1,37 @@
 ---
-title: 情景记忆通道
-version: 0.1
+title: 情景记忆
+version: 0.2
 date: 2026-07-06
-source: genesis/memory/AI_Pure_Storage_Flow.md, genesis/memory/AI_Memory_Response_Flow.md
 status: draft
 ---
 
-# 情景记忆通道
+# 情景记忆
 
 ## 存什么
 
-对话历史、交互片段、个人经历。
+流水账本身就是情景记忆的原始载体。`thamus.json` 中的 `experience` 字段记录提炼后的关键经历。
 
-## 写入流程
+## 流水账作为情景记忆
 
-1. **结构化打包**：`{user_id, timestamp, user_input, ai_output, emotion_tag}`。
-2. **重要性评分**：`importance = duration × 0.4 + urgency × 0.3 + repetition × 0.3`。
-3. **写入关系存储**。
+原始对话记录（`memory/logs/YYYYMMDD*.json`）就是情景记忆，包含完整的上下文、时间线、对话轮次。
 
-## 重要性评分细则
+## 提炼后的经历
 
-| 分量 | 计算方式 | 范围 |
-|------|----------|------|
-| 互动时长 | 对话轮数/时长归一化 | [0,1] |
-| 紧急度 | 含"立刻""紧急"等关键词加权 | [0,1] |
-| 重复提及 | 跨会话重复提及频率归一化 | [0,1] |
+简化时从流水账中提取关键经历，写入 thamus.json：
 
-## 字段要求
-
-| 字段 | 必填 | 说明 |
-|------|------|------|
-| `user_id` | 否 | 交互用户标识 |
-| `user_input` | 是 | 用户原始输入 |
-| `ai_output` | 是 | AI 原始回复 |
-| `emotion_tag` | 否 | 情绪标签：`neutral` / `happy` / `fear` / `corrected` / ... |
-| `urgency_level` | 否 | 紧急度 [0,1] |
+```json
+{
+  "content": "今天修好了 .claude/settings.json 的 schema",
+  "experience": "修schema",
+  "importance": 0.5,
+  "source_ids": ["流水账中的消息ID列表"]
+}
+```
 
 ## 生命周期
 
 - **强度公式**：`strength = importance × recency × reinforcement`
   - `recency = exp(-dt / tau)`，`tau = TAU_BASE × (0.5 + importance)`
   - `reinforcement = 1 + log(1 + recall_count)`
-- **淡化**：强度低于阈值（0.05）且已固化 → 降为 `state = "cold"`（冷状态/潜意识）。
-- **铁律保护**：未 consolidate 的记忆永不降级。
-
-## 检索方式
-
-见 `06-retrieve.md`。
+- **淡化**：强度低于阈值且已固化 → `state = "cold"`
+- **铁律**：未 consolidated 的记忆永不降级
