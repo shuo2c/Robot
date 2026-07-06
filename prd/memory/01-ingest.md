@@ -1,11 +1,11 @@
 ---
-title: 流水账存储
-version: 0.4
+title: 写入规则
+version: 0.5
 date: 2026-07-06
 status: draft
 ---
 
-# 流水账存储
+# 写入规则
 
 ## 存储位置
 
@@ -45,14 +45,15 @@ status: draft
 | `timestamp` | float | 对话时间戳 |
 | `id` | str | 12 位十六进制 ID |
 
-## 简化时补充的元数据
+## 元数据
+
+写入时只填 turn/user/assistant/timestamp/id。
+
+简化时补充以下字段：
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | `importance` | float | 重要性 [0,1]，整轮对话一个权重 |
 | `consolidated` | bool | 是否已固化 |
-| `embedding` | list[float] | 语义向量，整轮对话一个向量 |
+| `embedding` | list[float] | 语义向量 |
 | `linked_ids` | list[str] | 关联的其他记录 ID |
-| `recall_count` | int | 被检索到的次数 |
-
-写入时只填 turn/user/assistant/timestamp/id，其余字段在简化时补充。
