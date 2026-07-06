@@ -1,64 +1,42 @@
 ---
-title: 提炼记忆
-version: 0.2
+title: 简化提纯
+version: 0.3
 date: 2026-07-06
 status: draft
 ---
 
-# 提炼记忆
+# 简化提纯
 
-## 存什么
+## 做什么
 
-简化后提炼出的高价值记忆，写入 `memory/thamus.json`。
+扫描文件内所有原始对话记录，压缩冗余内容，保留语义核心。
 
-格式沿用现有 thamus.json 单条 item：
+## 规则
 
+- **保留**：关键事实、决策理由、教训经验、观点信念
+- **压缩**：冗长推理过程 → 结论 + 原因（一两句话）
+- **丢弃**：寒暄、重复、无信息量的过程性废话
+
+## 示例
+
+原始对话：
+```
+用户：这个 bug 怎么回事？
+助手：让我看看... 第一行不对，第二行也不对... 哦找到了，X 函数里 Y 参数传错了。
+用户：对，就是这样。
+```
+
+简化后：
 ```json
 {
-  "content": "提炼后的记忆内容",
-  "importance": 0.8,
-  "modality": "text",
-  "timestamp": 1782662400.0,
-  "last_recalled": 1782662400.0,
-  "recall_count": 0,
-  "consolidated": true,
-  "state": "active",
-  "embedding": [0.1, -0.2, ...],
-  "source_ids": ["流水账文件中的消息ID"],
-  "fact": "核心事实",
-  "opinion": "核心观点",
-  "experience": "核心经验",
-  "linked_ids": ["关联的其他记忆ID"],
-  "id": "消息唯一ID"
+  "content": "发现 X 函数的 Y 参数传错导致 bug，已修复",
+  "importance": 0.7,
+  "source_ids": ["原始消息ID列表"]
 }
 ```
 
-## 提炼规则
+## 时机
 
-简化时 LLM 执行：
-
-1. **筛选**：哪些流水账内容值得长期保留
-2. **提炼**：把碎片化内容浓缩成连贯记忆，保留语义核心
-3. **评分**：赋予 importance（0-1）
-4. **向量化**：计算 embedding
-5. **建链**：建立 linked_ids 关联
-6. **去重**：语义相似度判断是否与已有记忆重复
-
-## 字段说明
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `content` | str | 精炼后的记忆内容 |
-| `importance` | float | 重要性 [0,1]，简化时 LLM 判断 |
-| `source_ids` | list[str] | 来源流水账消息 ID 列表 |
-| `fact` | str \| null | 核心事实（如有） |
-| `opinion` | str \| null | 核心观点（如有） |
-| `experience` | str \| null | 核心经验（如有） |
-| `linked_ids` | list[str] | 关联的其他记忆 ID |
-| `embedding` | list[float] | 语义向量 |
-
-## 不存的
-
-- 无意义的闲聊、寒暄
-- 已被提炼过的重复内容
-- 与已有记忆语义高度重合的内容
+- 文件满 3MB 时
+- 跨天时
+- 手动触发（sleep 命令）

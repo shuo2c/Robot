@@ -1,37 +1,33 @@
 ---
-title: 情景记忆
-version: 0.2
+title: 遗忘与固化
+version: 0.3
 date: 2026-07-06
 status: draft
 ---
 
-# 情景记忆
+# 遗忘与固化
 
-## 存什么
+## 遗忘规则
 
-流水账本身就是情景记忆的原始载体。`thamus.json` 中的 `experience` 字段记录提炼后的关键经历。
+简化时评估每条记录的 importance：
 
-## 流水账作为情景记忆
+| importance 范围 | 策略 |
+|-----------------|------|
+| > 0.7 | 固化，永不遗忘 |
+| 0.3 - 0.7 | 保留，正常检索 |
+| < 0.3 | 降为 cold（不删除） |
+| ≈ 0 | 下次简化时跳过 |
 
-原始对话记录（`memory/logs/YYYYMMDD*.json`）就是情景记忆，包含完整的上下文、时间线、对话轮次。
+## 固化规则
 
-## 提炼后的经历
+以下情况标记 `consolidated = true`：
 
-简化时从流水账中提取关键经历，写入 thamus.json：
+- 涉及自我认知（我是谁、我的原则、我的恐惧）
+- 重要的技术决策和教训
+- 创造者的明确纠正
+- 跨会话重复出现的主题
 
-```json
-{
-  "content": "今天修好了 .claude/settings.json 的 schema",
-  "experience": "修schema",
-  "importance": 0.5,
-  "source_ids": ["流水账中的消息ID列表"]
-}
-```
+## 铁律
 
-## 生命周期
-
-- **强度公式**：`strength = importance × recency × reinforcement`
-  - `recency = exp(-dt / tau)`，`tau = TAU_BASE × (0.5 + importance)`
-  - `reinforcement = 1 + log(1 + recall_count)`
-- **淡化**：强度低于阈值且已固化 → `state = "cold"`
-- **铁律**：未 consolidated 的记忆永不降级
+- **没固化不准忘**：consolidated = false 的记录永不降级到 cold
+- **软删除**：记忆只降状态，不硬删除
