@@ -76,7 +76,8 @@ LLM 判断是否为长期重要记忆（自我认知、关键决策、明确纠�
 
 ### 9. 删除
 
-importance < 0.3 且 consolidated = true 的记录直接从文件中删除。
+- importance < 0.3 且 consolidated = true 的记录 → 直接删除
+- importance < 0.3 且 consolidated = false 的记录 → 标记待删除，下次简化时再评估
 
 ## 输出
 

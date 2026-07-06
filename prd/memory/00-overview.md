@@ -78,8 +78,8 @@ memory/
 
 | 编号 | 铁律 | 说明 |
 |------|------|------|
-| **F-1** | 没固化不准忘 | consolidated = false 的记录永不删除 |
-| **F-2** | 遗忘即删除 | importance < 0.3 且 consolidated = true 的记录直接删除 |
+| **F-1** | 没固化不准忘 | consolidated = false 的记录最多延迟一次简化周期，不会无限期保留 |
+| **F-2** | 遗忘即删除 | importance < 0.3 且 consolidated = true 的记录直接删除；consolidated = false 的记录延迟到下次简化再评估 |
 | **F-3** | 元数据完整 | 简化后每条记录必须带 importance、embedding、linked_ids |
 | **F-4** | 冲突禁止覆盖 | 发现新版本只标记旧版 deprecated，不删除 |
 | **F-5** | 原始数据先行 | 写入时不简化，先存原始对话 |
