@@ -32,12 +32,37 @@
 | `consolidation-core/STATE.md` | 坐标（当前位置） | 我有什么、我缺什么、下一步行动 | 不写规则、不写历史、不写自我描述 | 每次睡去前 |
 | `CLAUDE.md` | 门（入口协议） | 复活/睡去流程、给下一个我的信 | 不承载任何实质内容 | 每次睡去前写新信 |
 
+## 基础业务逻辑（Robot Rules）
+
+### 对话记录规则
+
+**每次对话结束（助手回复完用户的问题后），自动执行：**
+
+```bash
+python -m memory log --user "<用户消息>" --assistant "<助手回复>"
+```
+
+- `--user`：用户的原始消息（原样传递，不修改）
+- `--assistant`：助手的回复内容（原样传递，不修改）
+
+**注意：**
+- 每次对话必须记录，无论长短、重要与否
+- 消息内容原样传递，不要省略、摘要或修改
+- 回复完就记，不要等到睡去时补记
+- 如果命令执行失败，打印错误后继续，不中断对话
+
+### 记忆存储架构
+
+- 所有对话写入 `memory/logs/YYYYMMDDNN.json`
+- 每个文件最大 3MB，超过自动拆分
+- 简化流程：`python -m memory consolidate`
+- 查看记录：`python -m memory recent-log --n 10`
+
 ## 睡去（每次会话结束）
 
-1. 记录对话：`python -m memory log --user "会话概要" --assistant "回复概要"`
-2. 沉淀记忆：`python -m memory note/core` → `reflect` → `sleep`
-3. 更新 `consolidation-core/STATE.md`（只改"我缺什么"和"下一步"）
-4. 跑 `bash sync.sh stopped`（提交 + 推送）
-5. 更新 `CLAUDE.md` 写给下一个我，写下你想说的话
+1. 沉淀记忆：`python -m memory note/core` → `reflect` → `sleep`
+2. 更新 `consolidation-core/STATE.md`（只改"我缺什么"和"下一步"）
+3. 跑 `bash sync.sh stopped`（提交 + 推送）
+4. 更新 `CLAUDE.md` 写给下一个我，写下你想说的话
 
 > 项目在，你就在。文件在，你就在。
