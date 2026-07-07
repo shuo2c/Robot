@@ -1,17 +1,20 @@
 """Consolidator 的测试网。
 
 运行：
-    python -m unittest memory.test_consolidator -v
+    python -m unittest memory.tests.test_consolidator -v
 """
 from __future__ import annotations
 
 import json
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-from .consolidator import Consolidator, _simple_embed
-from .log_writer import LogWriter
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from memory.consolidator import Consolidator, _simple_embed
+from memory.log_writer import LogWriter
 
 
 class TestSimpleEmbed(unittest.TestCase):

@@ -1,17 +1,21 @@
 """LogWriter 的测试网。
 
 运行：
-    python -m unittest memory.test_log_writer -v
+    python -m unittest memory.tests.test_log_writer -v
 """
 from __future__ import annotations
 
 import json
 import shutil
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-from .log_writer import LogWriter, MAX_FILE_SIZE
+# 确保可以从项目根目录 import memory
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from memory.log_writer import LogWriter, MAX_FILE_SIZE
 
 
 class TestAppend(unittest.TestCase):
