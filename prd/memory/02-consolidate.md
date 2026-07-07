@@ -1,6 +1,6 @@
 ---
 title: 简化触发
-version: 0.5
+version: 0.6
 date: 2026-07-06
 status: draft
 ---
@@ -34,7 +34,7 @@ status: draft
 
 ### 3. 评分
 
-LLM 评估每条记录的初始 importance [0,1]。
+LLM 评估每条记录的初始 importance。初始值为正整数，基于语义重要性判定。
 
 ### 4. 建链
 
@@ -47,17 +47,15 @@ LLM 评估每条记录的初始 importance [0,1]。
 | 引用次数 | importance 加成 |
 |------|------|
 | 0 | 无 |
-| 1-2 | +0.1 |
-| 3-5 | +0.2 |
-| 5+ | +0.3 |
-
-加分后 importance 上限为 1.0。
+| 1-2 | +1 |
+| 3-5 | +2 |
+| 5+ | +3 |
 
 ### 6. 固化
 
 LLM 判断是否为长期重要记忆（自我认知、关键决策、明确纠正），是则标记 consolidated = true。
 
-**铁律保护**：consolidated = false 的记录永不删除（即使 importance < 0.3）。
+**铁律保护**：consolidated = false 的记录永不删除（即使 importance 很低）。
 
 ### 7. 向量化
 
@@ -65,8 +63,8 @@ LLM 判断是否为长期重要记忆（自我认知、关键决策、明确纠�
 
 ### 8. 删除
 
-- importance < 0.3 且 consolidated = true 的记录 → 直接删除
-- importance < 0.3 且 consolidated = false 的记录 → 保留，不删除
+- importance 极低（接近 0）且 consolidated = true 的记录 → 直接删除
+- importance 极低且 consolidated = false 的记录 → 保留，不删除
 
 ## 输出
 

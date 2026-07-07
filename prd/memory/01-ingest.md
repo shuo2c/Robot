@@ -53,7 +53,7 @@ status: draft
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| `importance` | float | 重要性 [0,1]，整轮对话一个权重 |
+| `importance` | int | 重要性，正整数，初始值由 LLM 判定，可无限增大 |
 | `consolidated` | bool | 是否已固化 |
 | `embedding` | list[float] | 语义向量 |
 | `linked_ids` | list[str] | 关联的其他记录 ID |
