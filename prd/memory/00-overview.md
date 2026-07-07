@@ -62,7 +62,8 @@ memory/
   "importance": 7,
   "consolidated": true,
   "embedding": [...],
-  "linked_ids": ["turn_def456"]
+  "linked_ids": ["turn_def456"],
+  "deprecated": false
 }
 ```
 
@@ -79,6 +80,6 @@ memory/
 |------|------|------|
 | **F-1** | 没固化不准忘 | consolidated = false 的记录不删除 |
 | **F-2** | 遗忘即删除 | importance 极低且 consolidated = true 的记录直接删除 |
-| **F-3** | 元数据完整 | 简化后每条记录必须带 importance、embedding、linked_ids |
-| **F-4** | 冲突禁止覆盖 | 发现新版本只标记旧版 deprecated，不删除 |
+| **F-3** | 元数据完整 | 简化后每条记录必须带 importance、embedding、linked_ids、deprecated |
+| **F-4** | 冲突禁止覆盖 | 发现新版本只标记旧版 deprecated = true，不删除 |
 | **F-5** | 原始数据先行 | 写入时不简化，先存原始对话 |

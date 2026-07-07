@@ -57,3 +57,4 @@ status: draft
 | `consolidated` | bool | 是否已固化 |
 | `embedding` | list[float] | 语义向量 |
 | `linked_ids` | list[str] | 关联的其他记录 ID |
+| `deprecated` | bool | 是否已被新版本替代 |
