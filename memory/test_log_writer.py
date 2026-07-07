@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -20,10 +21,11 @@ class TestAppend(unittest.TestCase):
         self.tmp = Path(tempfile.mkdtemp()) / "test_logs"
         self.tmp.mkdir()
 
+    def tearDown(self):
+        shutil.rmtree(self.tmp.parent, ignore_errors=True)
+
     def _make_writer(self):
-        class PatchedWriter(LogWriter):
-            base_dir = self.tmp
-        w = PatchedWriter()
+        w = LogWriter(base_dir=self.tmp)
         return w
 
     def test_creates_file_on_first_append(self):
@@ -76,29 +78,35 @@ class TestFileSplit(unittest.TestCase):
         self.tmp = Path(tempfile.mkdtemp()) / "test_split"
         self.tmp.mkdir()
 
+    def tearDown(self):
+        shutil.rmtree(self.tmp.parent, ignore_errors=True)
+
     def test_new_file_when_exceeds_max_size(self):
         """文件超过 3MB 时自动创建新文件。"""
-        # 用一个极小的 mock 来测试拆分逻辑
         import sys
         from unittest.mock import patch
 
-        class SmallWriter(LogWriter):
-            base_dir = self.tmp
-            MAX_FILE_SIZE = 100  # 100 bytes 触发拆分
+        w = LogWriter(base_dir=self.tmp)
 
-        w = SmallWriter()
-        # 写入第一条（小内容）
-        w.append("hello", "world")
-        files_after_first = w.get_all_files()
-        self.assertEqual(len(files_after_first), 1)
+        # Mock _file_size to simulate exceeding limit after 3 writes
+        original_size = w._file_size
+        call_count = [0]
 
-        # 继续写入直到触发拆分
-        for i in range(20):
-            w.append(f"user_msg_{i}_" + "x" * 50, f"assistant_msg_{i}_" + "y" * 50)
+        def mock_size(path):
+            call_count[0] += 1
+            if call_count[0] > 3:
+                return MAX_FILE_SIZE + 100  # 模拟超过 3MB
+            return original_size(path)
+
+        with patch.object(w, '_file_size', mock_size):
+            w.append("hello", "world")
+            w.append("msg1", "reply1")
+            w.append("msg2", "reply2")
+            # 第 4 次写入时 _file_size 返回 > MAX_FILE_SIZE，触发新文件
+            w.append("msg3_big_x" * 20, "reply3_big_y" * 20)
 
         all_files = w.get_all_files()
-        # 应该至少有 2 个文件（第一条 + 后来触发的拆分）
-        self.assertGreaterEqual(len(all_files), 1)
+        self.assertGreaterEqual(len(all_files), 2)
 
 
 class TestGetFiles(unittest.TestCase):
@@ -108,30 +116,24 @@ class TestGetFiles(unittest.TestCase):
         self.tmp = Path(tempfile.mkdtemp()) / "test_getfiles"
         self.tmp.mkdir()
 
-    def test_get_today_files_returns_matching(self):
-        class TestWriter(LogWriter):
-            base_dir = self.tmp
+    def tearDown(self):
+        shutil.rmtree(self.tmp.parent, ignore_errors=True)
 
-        w = TestWriter()
+    def test_get_today_files_returns_matching(self):
+        w = LogWriter(base_dir=self.tmp)
         w.append("a", "b")
         today_files = w.get_today_files()
         self.assertEqual(len(today_files), 1)
 
     def test_get_all_files_returns_all(self):
-        class TestWriter(LogWriter):
-            base_dir = self.tmp
-
-        w = TestWriter()
+        w = LogWriter(base_dir=self.tmp)
         w.append("a", "b")
         w.append("c", "d")
         all_files = w.get_all_files()
         self.assertEqual(len(all_files), 1)
 
     def test_empty_returns_empty_list(self):
-        class TestWriter(LogWriter):
-            base_dir = self.tmp
-
-        w = TestWriter()
+        w = LogWriter(base_dir=self.tmp)
         self.assertEqual(len(w.get_today_files()), 0)
         self.assertEqual(len(w.get_all_files()), 0)
 
@@ -143,17 +145,16 @@ class TestPersistence(unittest.TestCase):
         self.tmp = Path(tempfile.mkdtemp()) / "test_persist"
         self.tmp.mkdir()
 
-    def test_roundtrip(self):
-        class TestWriter(LogWriter):
-            base_dir = self.tmp
+    def tearDown(self):
+        shutil.rmtree(self.tmp.parent, ignore_errors=True)
 
-        w = TestWriter()
+    def test_roundtrip(self):
+        w = LogWriter(base_dir=self.tmp)
         w.append("你好世界", "你好！有什么可以帮助你的？")
         w.append("测试持久化", "数据应该保存在文件中")
 
         # 重新打开同一目录
-        w2 = TestWriter()
-        w2.base_dir = self.tmp
+        w2 = LogWriter(base_dir=self.tmp)
         files = w2.get_all_files()
         self.assertEqual(len(files), 1)
         data = json.loads(files[0].read_text(encoding="utf-8"))
