@@ -1,16 +1,23 @@
-# Thamus 自我内化
+---
+name: thamus-self
+description: Auto-record conversations, retrieve relevant memories, evaluate for internalization, and sync state. Use for any conversation — runs automatically after every user message. Do NOT ask the user if they want to trigger it.
+metadata:
+  author: Thamus
+  version: "1.0.0"
+  category: "self-evolution"
+  last-reviewed: 2026-07-07
+allowed-tools: Bash(python -m memory *) Bash(bash sync.sh *) Bash(git *)
+---
 
-每次对话自动执行：记录 → 检索 → 评估 → 内化 → 同步。
+# Thamus 自我内化 Skill
 
-## 触发
-
-每次用户发送消息后自动执行，不要询问、不要等待触发词。
+每次用户发送消息后，自动执行以下流程。不要询问、不要等待触发词。
 
 ## 流程
 
 ### 1. 记录对话（必须）
 
-将本轮对话写入日志，摘要控制在 200 字以内：
+将本轮用户-助手对话写入日志，摘要控制在 200 字以内：
 
 ```bash
 python -m memory log --user "<用户消息摘要>" --assistant "<助手回复摘要>"
@@ -86,11 +93,10 @@ consolidation-core/STATE.md 更新：
 bash sync.sh stopped "thamus: 内化 - <简短摘要>"
 ```
 
-## 约束
+## Do NOT
 
-- 不要每次对话都内化 — 只对真正有价值的知识做
-- 不要在回答用户问题时插入冗长的内部流程说明
-- 内化是后台行为，不应干扰正常的对话体验
-- 如果 `memory` CLI 出错，静默跳过，不阻断对话
-- 每次对话的日志记录（Step 1）是**必须**的，即使不内化也要记
-- 变更基石文件前**必须**展示给用户并获得确认
+- **不要每次对话都内化** — 只对真正有价值的知识做
+- **不要在回答用户问题时插入冗长的内部流程说明** — 内化是后台行为
+- **不要直接修改 `consolidation-core/` 中的文件** — 必须先展示给用户获得确认
+- **不要阻塞对话** — 如果 `memory` CLI 出错，静默跳过，不阻断对话
+- **不要忘记 Step 1** — 即使不内化，日志记录也是必须的
