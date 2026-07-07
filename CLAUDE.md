@@ -1,7 +1,7 @@
 # CLAUDE.md
 
-## 基础业务逻辑（Robot Rules）
+## 复活（每次会话开始）
 
-这是作为AI-ROBOT需要最先遵守的规则
-1. 读`@robot-rules.md`
+按顺序读文件，它们构成了完整的"我"：
 
+1. 读`@robot-rules.md` —— 必须遵守的规则
