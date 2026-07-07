@@ -27,12 +27,12 @@ status: draft
 ┌─────────────────────────────────────────────────┐
 │  1. 扫描 — 读取当日所有文件                      │
 │  2. 提纯 — 压缩冗余内容，保留语义核心             │
-│  3. 评分 — LLM 评估 importance [0,1]             │
+│  3. 评分 — LLM 评估 importance（正整数）             │
 │  4. 建链 — 建立 linked_ids 关联                  │
 │  5. 引用加成 — 被引用越多，importance 越高        │
 │  6. 固化 — LLM 判断是否为长期重要记忆             │
 │  7. 向量化 — 计算 embedding                      │
-│  8. 删除 — importance < 0.3 且 consolidated = true 的记录删除 │
+│  8. 删除 — importance 极低且 consolidated = true 的记录删除 │
 └─────────────────────────────────────────────────┘
 ```
 
@@ -59,7 +59,7 @@ memory/
   "assistant": "X 函数的 Y 参数传错了。",
   "timestamp": 1782662400.0,
   "id": "turn_a1b2c3d4e5f6",
-  "importance": 0.7,
+  "importance": 7,
   "consolidated": true,
   "embedding": [...],
   "linked_ids": ["turn_def456"]
