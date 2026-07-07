@@ -1,4 +1,3 @@
-# CLAUDE.md
 
 ## 基础业务逻辑（Robot Rules）
 
