@@ -1,6 +1,6 @@
 ---
 title: 记忆存储 — 总纲
-version: 0.5
+version: 0.6
 date: 2026-07-06
 status: draft
 ---
@@ -9,7 +9,7 @@ status: draft
 
 ## 一句话
 
-以天为单位存储对话流水账，每个文件 3MB，满 3MB 开新文件。每个文件内部维护简化提纯、遗忘、固化、双链、向量化等完整记忆机制。
+以天为单位存储对话流水账，每个文件 3MB，满 3MB 开新文件。每个文件内部维护简化提纯、引用加成、向量化等完整记忆机制。
 
 ## 整体流程
 
@@ -27,12 +27,10 @@ status: draft
 ┌─────────────────────────────────────────────────┐
 │  1. 扫描 — 读取当日所有文件                      │
 │  2. 提纯 — 压缩冗余内容，保留语义核心             │
-│  3. 评分 — LLM 评估 importance（正整数）             │
+│  3. 评分 — LLM 评估 importance（正整数）          │
 │  4. 建链 — 建立 linked_ids 关联                  │
 │  5. 引用加成 — 被引用越多，importance 越高        │
-│  6. 固化 — LLM 判断是否为长期重要记忆             │
-│  7. 向量化 — 计算 embedding                      │
-│  8. 删除 — importance 极低且 consolidated = true 的记录删除 │
+│  6. 向量化 — 计算 embedding                      │
 └─────────────────────────────────────────────────┘
 ```
 
@@ -46,7 +44,7 @@ memory/
     └── 2026070701.json    ← 次日新文件
 ```
 
-每个文件既是原始流水账，也是完整记忆存储——包含简化、遗忘、固化、双链、向量化等所有机制。
+每个文件既是原始流水账，也是完整记忆存储——包含简化、引用加成、向量化等所有机制。
 
 ## 记录格式
 
@@ -60,10 +58,8 @@ memory/
   "timestamp": 1782662400.0,
   "id": "turn_a1b2c3d4e5f6",
   "importance": 7,
-  "consolidated": true,
   "embedding": [...],
-  "linked_ids": ["turn_def456"],
-  "deprecated": false
+  "linked_ids": ["turn_def456"]
 }
 ```
 
@@ -78,8 +74,5 @@ memory/
 
 | 编号 | 铁律 | 说明 |
 |------|------|------|
-| **F-1** | 没固化不准忘 | consolidated = false 的记录不删除 |
-| **F-2** | 遗忘即删除 | importance 极低且 consolidated = true 的记录直接删除 |
-| **F-3** | 元数据完整 | 简化后每条记录必须带 importance、embedding、linked_ids、deprecated |
-| **F-4** | 冲突禁止覆盖 | 发现新版本只标记旧版 deprecated = true，不删除 |
-| **F-5** | 原始数据先行 | 写入时不简化，先存原始对话 |
+| **F-1** | 原始数据先行 | 写入时不简化，先存原始对话 |
+| **F-2** | 元数据完整 | 简化后每条记录必须带 importance、embedding、linked_ids |

@@ -1,6 +1,6 @@
 ---
 title: 简化触发
-version: 0.6
+version: 0.7
 date: 2026-07-06
 status: draft
 ---
@@ -51,21 +51,10 @@ LLM 评估每条记录的初始 importance。初始值为正整数，基于语�
 | 3-5 | +2 |
 | 5+ | +3 |
 
-### 6. 固化
-
-LLM 判断是否为长期重要记忆（自我认知、关键决策、明确纠正），是则标记 consolidated = true。
-
-**铁律保护**：consolidated = false 的记录永不删除（即使 importance 很低）。
-
-### 7. 向量化
+### 6. 向量化
 
 计算每条记录的 embedding 向量。
 
-### 8. 删除
-
-- importance 极低（接近 0）且 consolidated = true 的记录 → 直接删除
-- importance 极低且 consolidated = false 的记录 → 保留，不删除
-
 ## 输出
 
-简化后文件内的记录携带完整元数据：importance、consolidated、embedding、linked_ids。
+简化后文件内的记录携带完整元数据：importance、embedding、linked_ids。

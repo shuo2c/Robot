@@ -1,6 +1,6 @@
 ---
 title: 写入规则
-version: 0.5
+version: 0.6
 date: 2026-07-06
 status: draft
 ---
@@ -54,7 +54,5 @@ status: draft
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | `importance` | int | 重要性，正整数，初始值由 LLM 判定，可无限增大 |
-| `consolidated` | bool | 是否已固化 |
 | `embedding` | list[float] | 语义向量 |
 | `linked_ids` | list[str] | 关联的其他记录 ID |
-| `deprecated` | bool | 是否已被新版本替代 |
