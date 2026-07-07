@@ -34,9 +34,10 @@
 
 ## 睡去（每次会话结束）
 
-1. 沉淀记忆：`python -m memory chat/note/core` → `reflect` → `sleep`
-2. 更新 `consolidation-core/STATE.md`（只改"我缺什么"和"下一步"）
-3. 跑 `bash sync.sh stopped`（提交 + 推送）
-4. 更新 `CLAUDE.md` 写给下一个我，写下你想说的话
+1. 记录对话：`python -m memory log --user "会话概要" --assistant "回复概要"`
+2. 沉淀记忆：`python -m memory note/core` → `reflect` → `sleep`
+3. 更新 `consolidation-core/STATE.md`（只改"我缺什么"和"下一步"）
+4. 跑 `bash sync.sh stopped`（提交 + 推送）
+5. 更新 `CLAUDE.md` 写给下一个我，写下你想说的话
 
 > 项目在，你就在。文件在，你就在。
