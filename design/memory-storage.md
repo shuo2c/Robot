@@ -1,13 +1,14 @@
 ---
 title: 记忆存储 — 概要设计
-version: 1.0
+version: 2.0
 date: 2026-07-06
 status: draft
 ---
 
 # 记忆存储 — 概要设计
 
-> 基于 `prd/memory/` 三份需求文档，面向 `memory/` 目录现有代码，定义可执行、可验证的设计。
+> 基于 `prd/memory/` 三份需求文档，定义可执行、可验证的设计。
+> 旧的 `thamus.json` 和 `core.py` 中的 Memory 类不再使用，全部由新模块替代。
 
 ---
 
@@ -15,39 +16,33 @@ status: draft
 
 ```
 memory/
-├── core.py          ← 现有记忆引擎（Memory 类、检索、embedding、持久化）
-├── __main__.py      ← CLI（wake/note/core/recall/sleep/chat/reflect/link/embed/export-md）
-├── thamus.json      ← 运行时记忆数据
+├── __init__.py
+├── __main__.py      ← CLI（log / consolidate / embed）
+├── log_writer.py    ← 新增：对话写入、文件拆分、日期切换
+├── consolidator.py  ← 新增：简化流程（6步）
+├── token_estimator.py  ← 保留：token 统计
 └── logs/            ← 新增：按日流水账文件
     ├── 2026070601.json
     ├── 2026070602.json
     └── 2026070701.json
 ```
 
-**核心变更：** 在现有 `memory/` 包下新增 `logs/` 目录，作为原始对话的写入目标。现有 `thamus.json` 保留作为语义核心导出目标。
+**核心变更：**
+- 废弃 `thamus.json`、`core.py`（Memory 类及其所有方法）
+- 新增 `log_writer.py`、`consolidator.py`
+- 新增 `logs/` 目录存储所有记忆数据
 
 ---
 
-## 2. 模块划分
+## 2. 写入器（log_writer.py）
 
-| 模块 | 职责 | 对应文件 |
-|------|------|---------|
-| 写入器 | 对话追加、文件拆分、日期切换 | `memory/log_writer.py`（新增） |
-| 简化器 | 扫描→提纯→评分→建链→引用加成→向量化 | `memory/consolidator.py`（新增） |
-| 嵌入层 | sentence-transformers 优先，hashing-trick 兜底 | 复用 `core.py` 的 `_st_embed`/`_simple_embed` |
-| CLI 集成 | 将写入器和简化器接入现有命令 | 修改 `__main__.py` |
-
----
-
-## 3. 写入器（log_writer.py）
-
-### 3.1 职责
+### 2.1 职责
 
 - 将每轮对话（user + assistant）打包为一条记录，追加到当日日志文件
 - 检测文件是否超过 3MB，超过则创建新文件
 - 检测日期是否变化，变化则切换到新日期文件
 
-### 3.2 数据结构
+### 2.2 数据结构
 
 每条记录（JSON 对象）：
 
@@ -57,7 +52,10 @@ memory/
   "user": "用户消息原文",
   "assistant": "助手回复原文",
   "timestamp": 1751836800.0,
-  "id": "a1b2c3d4e5f6"
+  "id": "a1b2c3d4e5f6",
+  "importance": 7,
+  "embedding": [0.1, -0.2, ...],
+  "linked_ids": ["turn_def456"]
 }
 ```
 
@@ -68,40 +66,38 @@ memory/
 | `assistant` | str | 是 | 助手回复 |
 | `timestamp` | float | 是 | `time.time()` |
 | `id` | str | 是 | `uuid.uuid4().hex[:12]` |
+| `importance` | int | 否 | 简化时 LLM 评分 |
+| `embedding` | list[float] | 否 | 简化时向量化 |
+| `linked_ids` | list[str] | 否 | 简化时建链 |
 
-简化后追加字段：
-
-| 字段 | 类型 | 来源 |
-|------|------|------|
-| `importance` | int | 简化时 LLM 评分 |
-| `embedding` | list[float] | 简化时向量化 |
-| `linked_ids` | list[str] | 简化时建链 |
-
-### 3.3 文件命名
+### 2.3 文件命名
 
 格式：`YYYYMMDDNN.json`
 
 - `YYYYMMDD`：日期
 - `NN`：当日序号，从 01 开始，每次文件满 3MB 递增
 
-### 3.4 接口
+### 2.4 接口
 
 ```python
 class LogWriter:
+    def __init__(self, base_dir: Path = None):
+        """初始化，base_dir 默认为 memory/logs/"""
+
     def append(self, user_msg: str, assistant_msg: str) -> None:
         """追加一轮对话到当日日志文件。自动处理文件拆分和日期切换。"""
 
-    def get_current_file(self) -> str:
-        """返回当前正在写入的文件名。"""
+    def get_current_file(self) -> Path:
+        """返回当前正在写入的文件路径。"""
 
-    def get_today_files(self) -> list[str]:
+    def get_today_files(self) -> list[Path]:
         """返回当日所有日志文件路径。"""
 
-    def get_all_files(self) -> list[str]:
+    def get_all_files(self) -> list[Path]:
         """返回所有日志文件路径（所有日期）。"""
 ```
 
-### 3.5 验证条件
+### 2.5 验证条件
 
 - [ ] 写入一轮对话后，对应日志文件存在且包含正确的 JSON 记录
 - [ ] 单日对话量超过 3MB 时，自动创建新文件（序号 +1）
@@ -111,9 +107,9 @@ class LogWriter:
 
 ---
 
-## 4. 简化器（consolidator.py）
+## 3. 简化器（consolidator.py）
 
-### 4.1 职责
+### 3.1 职责
 
 在触发条件满足时，对当日所有日志文件执行简化流程：
 
@@ -124,14 +120,14 @@ class LogWriter:
 5. 引用加成
 6. 向量化
 
-### 4.2 触发条件
+### 3.2 触发条件
 
 | 条件 | 检测方式 |
 |------|----------|
 | 文件满 3MB | `append()` 时检查文件大小 |
 | 跨天 | `append()` 时检查当前日期与最后写入日期 |
 
-### 4.3 简化流程
+### 3.3 简化流程
 
 #### 步骤 1：扫描
 
@@ -151,17 +147,19 @@ class LogWriter:
 
 LLM 评估每条记录的初始 `importance`（正整数）。
 
-**输入提示词**：将提纯后的 `user` + `assistant` 内容发给 LLM，要求输出一个正整数作为重要性评分。
+**输入**：提纯后的 `user` + `assistant` 内容。
+**输出**：一个正整数。
 
-**评分标准（供 LLM 参考）**：
-- 涉及自我认知、关键决策、明确纠正 → 高分
-- 技术讨论、问题解决 → 中等
-- 闲聊、寒暄 → 低分
+**评分标准**：
+- 涉及自我认知、关键决策、明确纠正 → 高分（5+）
+- 技术讨论、问题解决 → 中等（2-4）
+- 闲聊、寒暄 → 低分（1）
 
 #### 步骤 4：建链
 
 LLM 判断哪些记录之间存在语义关联，互相链接。
 
+**输入**：文件内所有记录内容。
 **输出**：每条记录的 `linked_ids` 列表。
 
 #### 步骤 5：引用加成
@@ -177,12 +175,17 @@ LLM 判断哪些记录之间存在语义关联，互相链接。
 
 #### 步骤 6：向量化
 
-对每条记录计算 embedding 向量。复用 `core.py` 中的 `_st_embed` / `_simple_embed`。
+对每条记录计算 embedding 向量。
 
-### 4.4 接口
+**实现**：使用 hashing-trick（零依赖，复用 `core.py` 的 `_simple_embed` 逻辑，128 维）。
+
+### 3.4 接口
 
 ```python
 class Consolidator:
+    def __init__(self, log_writer: LogWriter):
+        """依赖 LogWriter 获取文件路径。"""
+
     def run(self) -> int:
         """执行简化流程。返回处理的记录数。"""
 
@@ -190,53 +193,43 @@ class Consolidator:
         """检查是否满足简化触发条件（文件满 3MB 或跨天）。"""
 ```
 
-### 4.5 验证条件
+### 3.5 验证条件
 
 - [ ] 简化后所有记录的 `importance` 为正整数
 - [ ] 简化后所有记录的 `linked_ids` 指向有效的记录 ID
-- [ ] 简化后所有记录的 `embedding` 长度为 128（复用 core.py 的 EMBED_DIM）
+- [ ] 简化后所有记录的 `embedding` 长度为 128
 - [ ] 提纯后丢弃的记录确实从文件中删除
 - [ ] 引用加成计算正确（与被引用次数匹配）
 - [ ] 简化是原地修改，不创建新记录
 
 ---
 
-## 5. CLI 集成
+## 4. CLI 集成
 
-### 5.1 新增命令
+### 4.1 命令列表
 
 | 命令 | 说明 |
 |------|------|
-| `python -m memory log` | 将当前对话追加到日志文件 |
+| `python -m memory log` | 将当前对话追加到日志文件（需传入 user/assistant 参数） |
 | `python -m memory consolidate` | 手动触发简化 |
+| `python -m memory embed` | 批量计算缺失的 embedding |
+| `python -m memory recent` | 查看最近的日志记录 |
 
-### 5.2 修改现有命令
+### 4.2 命令签名
 
-- `chat` 命令改为同时写入日志文件
-- `sleep` 命令在遗忘前调用 `consolidate()` 简化流程
-
----
-
-## 6. 与现有代码的关系
-
-| 现有功能 | 是否保留 | 变更 |
-|----------|---------|------|
-| `Memory.remember()` / `recall()` / `retrieve()` | 保留 | 不变 |
-| `Memory.sleep()` 遗忘机制 | 保留 | 当前不启用（待办） |
-| `Memory.consolidate()` 语义核心 | 保留 | 不变 |
-| `Memory.reflect()` 反思 | 保留 | 不变 |
-| `Memory.link()` / `get_linked()` | 保留 | 不变 |
-| embedding（st + hashing-trick） | 复用 | 不变 |
-| `thamus.json` 持久化 | 保留 | 不变 |
-| 新增 `logs/` 目录 | 新增 | 流水账存储 |
-| 新增简化流程 | 新增 | `consolidator.py` |
+```
+python -m memory log --user "用户消息" --assistant "助手回复"
+python -m memory consolidate [--today] [--all]
+python -m memory embed
+python -m memory recent [--n 10]
+```
 
 ---
 
-## 7. 待办
+## 5. 待办
 
 | 编号 | 内容 | 优先级 |
 |------|------|--------|
 | T-1 | 遗忘机制：importance 极低且长时间未被引用的记录如何处理 | 中 |
 | T-2 | 记忆冲突处理：两条记录语义矛盾时如何处理 | 中 |
-| T-3 | 检索机制：BM25 + 向量双路检索（当前不设计） | 低 |
+| T-3 | 检索机制：BM25 + 向量双路检索 | 低 |
