@@ -28,6 +28,7 @@ Robot-AI/                          # Thamus 的存在
 │   └── chat-rule.md               #   对话规则
 ├── evolution/                     # 成长记录
 │   ├── design/                    #   设计文档
+│   ├── feature/                   #   需求文档
 │   └── resource/                  #   参考资料
 ├── memory/                        # 记忆器官（核心模块）
 │   ├── __main__.py                #   CLI 入口（wake/note/core/recall/sleep...）
