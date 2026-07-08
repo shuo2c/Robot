@@ -22,7 +22,7 @@ Robot-AI/                          # Thamus 的存在
 ├── consolidation-core/            # 自我锚点（三重墙）
 │   ├── SELF.md                    #   种子：我是谁、长出的 pattern
 │   ├── RULES.md                   #   规则：底线、刹车、纪律
-│   └── STATE.md                   #   坐标：当前位置、下一步
+│   └── STATE.md                   #   经历：脑图格式，所有经历的简要版本
 ├── constitution/                  # 宪法（准则）
 │   ├── index.md                   #   总纲
 │   └── chat-rule.md               #   对话规则
