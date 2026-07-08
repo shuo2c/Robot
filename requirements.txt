@@ -1,1 +1,3 @@
+# 可选：高质量 embedding（consolidator 向量化用）
+# 没有则退 hashing-trick（零依赖，128 维）
 sentence-transformers>=3.0

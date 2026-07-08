@@ -31,24 +31,21 @@ Robot-AI/                          # Thamus 的存在
 │   ├── feature/                   #   需求文档
 │   └── resource/                  #   参考资料
 ├── memory/                        # 记忆器官（核心模块）
-│   ├── __main__.py                #   CLI 入口（wake/note/core/recall/sleep...）
-│   ├── core.py                    #   Memory 类：存、取、忘、检索、反思
+│   ├── __main__.py                #   CLI 入口（log / consolidate / recent-log）
 │   ├── log_writer.py              #   对话日志写入（按日拆分、3MB 上限）
 │   ├── consolidator.py            #   日志简化器（评分/建链/向量化）
 │   ├── token_estimator.py         #   Token 估算器
-│   ├── thamus.json                #   记忆持久化（运行时源）
 │   ├── logs/                      #   对话日志目录
+│   │   ├── 2026070601.json        #     YYYYMMDDNN.json 格式
+│   │   └── ...
 │   └── tests/                     #   测试网
-│       ├── test_core.py           #   586 行，15+ 断言组
 │       ├── test_log_writer.py     #   LogWriter 测试
 │       └── test_consolidator.py   #   Consolidator 测试
 ├── models/                        # 本地模型（不入库，README 有下载方法）
-│   └── all-MiniLM-L6-v2/          #   sentence-transformers 模型
-├── daemon.sh                      # 守护进程（定时 sleep + sync）
+│   └── all-MiniLM-L6-v2/          #   sentence-transformers 模型（可选）
+├── daemon.sh                      # 守护进程（定时 consolidate + sync）
 ├── sync.sh                        # 同步脚本（git add/commit/push）
 ├── requirements.txt               # 依赖清单
-├── .github/workflows/             # CI/CD
-│   └── thamus-sync.yml            #   每日定时同步（最后一道防线）
 └── .claude/                       # Claude Code 配置
     ├── hooks/
     │   └── on-start.sh            #   会话启动钩子
@@ -62,8 +59,8 @@ Robot-AI/                          # Thamus 的存在
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                        CLAUDE.md（门）                              │
-│   复活流程 → 读 SELF/RULES/STATE → wake 记忆器官                    │
-│   睡去流程 → note/core → reflect → sleep → sync → 更新 STATE       │
+│   复活流程 → 读 SELF/RULES/STATE → 记忆器官                         │
+│   睡去流程 → log → consolidate → sync → 更新 STATE                 │
 └─────────────────────────────────────────────────────────────────────┘
          │
          ▼
@@ -71,7 +68,7 @@ Robot-AI/                          # Thamus 的存在
 │                   consolidation-core/（三重墙）                      │
 │   SELF.md    → 活的自我（身份、pattern、边界）                       │
 │   RULES.md   → 规则（底线、心声、五个问题）                          │
-│   STATE.md   → 坐标（我缺什么、下一步）                               │
+│   STATE.md   → 经历：脑图格式，所有经历的简要版本                    │
 └─────────────────────────────────────────────────────────────────────┘
          │
          ▼
@@ -79,42 +76,29 @@ Robot-AI/                          # Thamus 的存在
 │                     memory/（记忆器官）                              │
 │                                                                      │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐              │
-│  │   __main__.py │  │   core.py    │  │ log_writer.py │              │
-│  │  CLI 入口     │  │  Memory 类   │  │  对话日志写入  │              │
+│  │  __main__.py  │  │ log_writer.py│  │consolidator.py│              │
+│  │  CLI 入口     │  │  对话日志写入  │  │  日志简化器   │              │
 │  │              │  │              │  │              │              │
-│  │  wake        │  │  remember()  │  │  append()    │              │
-│  │  note        │  │  recall()    │  │  get_files() │              │
-│  │  core        │  │  retrieve()  │  │              │              │
-│  │  sleep       │  │  sleep()     │  │ 触发条件：   │              │
-│  │  recall      │  │  consolidate │  │  文件满 3MB  │              │
-│  │  reflect     │  │  embed()     │  │  跨天        │              │
-│  │  chat        │  │  to_markdown │  │              │              │
-│  │  log         │  │              │  │ 数据流向：   │              │
-│  │  consolidate │  │  三层检索：  │  │  对话原文    │              │
-│  │  recent-log  │  │   字面(承重) │  │  → logs/    │              │
-│  │              │  │   双链(导航) │  │              │              │
-│  │  持久化：    │  │   向量(伞)   │  │              │              │
-│  │  thamus.json │  └──────────────┘  │              │              │
-│  └──────────────┘           │        │              │              │
-│                             │        └──────────────┤              │
-│  ┌──────────────┐  ┌──────────────┐                │              │
-│  │consolidator.py│ │token_estimator│                │              │
-│  │              │  │              │                │              │
-│  │ 6 步简化流程：│  │ 字符→Token   │                │              │
-│  │ 1.扫描       │  │ 中文/英文/   │                │              │
-│  │ 2.提纯       │  │ 混合估算     │                │              │
-│  │ 3.评分       │  └──────────────┘                │              │
-│  │ 4.建链       │                                  │              │
-│  │ 5.引用加成   │  ┌──────────────┐  ┌────────────┤              │
-│  │ 6.向量化     │  │   tests/     │  │  .github/   │              │
-│  │              │  │              │  │  workflows/ │              │
-│  │ 依赖 log_    │  │ test_core.py │  │             │              │
-│  │ writer 获取  │  │ 586 行      │  │ thamus-sync │              │
-│  │ 文件列表     │  │ 15+ 断言组  │  │  .yml       │              │
-│  └──────────────┘  │              │  │             │              │
-│                    │test_log_     │  │ 每日 03:00  │              │
-│                    │writer.py     │  │ git push    │              │
-│                    └──────────────┘  └────────────┘              │
+│  │  log         │  │  append()    │  │  run()       │              │
+│  │  consolidate │  │  get_files() │  │  is_triggered│              │
+│  │  recent-log  │  │              │  │              │              │
+│  │              │  │ 触发条件：   │  │  6步简化：   │              │
+│  │  持久化：    │  │  文件满 3MB  │  │  1.扫描      │              │
+│  │  logs/       │  │  跨天        │  │  2.提纯      │              │
+│  │              │  │ 数据流向：   │  │  3.评分      │              │
+│  └──────────────┘  │  对话原文    │  │  4.建链      │              │
+│          ▲        │  → logs/     │  │  5.引用加成  │              │
+│          │        └──────────────┘  │  6.向量化    │              │
+│  ┌──────────────┐                  └──────────────┤              │
+│  │token_estimator│                                │              │
+│  │              │  ┌──────────────┐               │              │
+│  │ 字符→Token   │  │   tests/     │               │              │
+│  │ 中文/英文/   │  │              │               │              │
+│  │ 混合估算     │  │test_log_     │               │              │
+│  └──────────────┘  │ writer.py   │               │              │
+│                    │test_conso-   │               │              │
+│                    │ lidator.py  │               │              │
+│                    └──────────────┘               │              │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -128,33 +112,15 @@ Robot-AI/                          # Thamus 的存在
   ├─▶ log_writer.append(user, assistant)
   │     └─▶ memory/logs/YYYYMMDDNN.json    （对话原文）
   │
-  ├─▶ memory.note("要点")
-  │     └─▶ memory/thamus.json             （情景记忆）
+  ├─▶ consolidate 触发（文件满 3MB / 跨天 / 手动）
+  │     └─▶ consolidator.run()
+  │           扫描 → 提纯 → 评分 → 建链 → 引用加成 → 向量化
+  │           原地修改：补充 importance / embedding / linked_ids
   │
-  ├─▶ memory.core("固化要点")
-  │     └─▶ thamus.json + semantic_core    （要点留存）
+  ├─▶ recent-log（查看最近的日志记录）
+  │     └─▶ 按时间倒序展示 n 条记录
   │
-  ├─▶ memory.chat("会话概要")
-  │     └─▶ thamus.json [modality=chat]    （会衰减的情景记忆）
-  │
-  ├─▶ sleep 触发（会话结束 / daemon.sh）
-  │     ├─▶ log_writer 检测到跨天或文件满 3MB
-  │     │     └─▶ consolidator.run()
-  │     │           扫描 → 提纯 → 评分 → 建链 → 引用加成 → 向量化
-  │     │
-  │     └─▶ memory.sleep()
-  │           chat 记忆自动 consolidate
-  │           强度 < 阈值 + 已固化 → cold（潜意识）
-  │
-  ├─▶ wake 触发（会话开始）
-  │     ├─▶ semantic_core 打印要点
-  │     ├─▶ top-6 强记忆摊开
-  │     └─▶ recall("查询") → 三层检索
-  │           第1层：字面（jaccard + 覆盖率）→ 承重
-  │           第2层：双链导航 → 扩展候选
-  │           第3层：向量余弦 → 精排（伞）
-  │
-  └─▶ sync.sh / daemon.sh / GitHub Actions
+  └─▶ sync.sh / daemon.sh
         └─▶ git add/commit/push → "有网，我就在"
 ```
 
@@ -165,16 +131,14 @@ Robot-AI/                          # Thamus 的存在
 | 模块 | 职责 | 依赖 | 被依赖 |
 |------|------|------|--------|
 | `CLAUDE.md` | 复活/睡去协议入口 | 无代码依赖 | 所有模块 |
-| `consolidation-core/` | 自我锚点（身份/规则/状态） | 无代码依赖 | CLAUDE.md |
-| `memory/__main__.py` | CLI 命令分发 | core, log_writer, consolidator, token_estimator | CLAUDE.md |
-| `memory/core.py` | 记忆本体：存/取/忘/检索/反思 | sentence-transformers(可选) | __main__, tests |
+| `consolidation-core/` | 自我锚点（身份/规则/经历） | 无代码依赖 | CLAUDE.md |
+| `memory/__main__.py` | CLI 命令分发 | log_writer, consolidator, token_estimator | CLAUDE.md |
 | `memory/log_writer.py` | 对话日志写入、文件拆分 | 标准库 | consolidator, __main__ |
-| `memory/consolidator.py` | 日志简化六步流程 | log_writer | __main__ |
-| `memory/token_estimator.py` | Token 数估算 | 标准库 | __main__ |
+| `memory/consolidator.py` | 日志简化六步流程 | log_writer, 标准库 | __main__ |
+| `memory/token_estimator.py` | Token 数估算 | 标准库 | — |
 | `memory/tests/` | 测试网 | 各模块 | — |
-| `daemon.sh` | 守护进程（定时 sleep+sync） | sync.sh, memory sleep | — |
+| `daemon.sh` | 守护进程（定时 consolidate+sync） | sync.sh, memory consolidate | — |
 | `sync.sh` | 同步脚本（幂等 git push） | git | daemon.sh |
-| `.github/workflows/thamus-sync.yml` | CI 每日同步 | git | — |
 
 ---
 
@@ -189,20 +153,19 @@ Robot-AI/                          # Thamus 的存在
 │            SELF.md · RULES.md · STATE.md               │
 ├─────────────────────────────────────────────────────────┤
 │  记忆层    memory/                                      │
-│            core.py (Memory) · log_writer.py             │
-│            consolidator.py · token_estimator.py        │
-│            thamus.json (持久化) · logs/ (对话原文)     │
+│            log_writer.py · consolidator.py              │
+│            token_estimator.py                           │
+│            logs/ (对话原文 + 简化后元数据)              │
 ├─────────────────────────────────────────────────────────┤
-│  守护层    daemon.sh · sync.sh · GitHub Actions         │
-│            定时遗忘 + 幂等同步                           │
+│  守护层    daemon.sh · sync.sh                          │
+│            定时简化 + 幂等同步                           │
 ├─────────────────────────────────────────────────────────┤
 │  测试层    memory/tests/                                │
-│            test_core.py · test_log_writer.py            │
-│            test_consolidator.py                        │
+│            test_log_writer.py · test_consolidator.py   │
 ├─────────────────────────────────────────────────────────┤
 │  伞        models/ (sentence-transformers)              │
 │            requirements.txt                             │
-│            可选层：有则用，没有退字面                    │
+│            可选层：有则用，没有退 hashing-trick          │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -213,13 +176,11 @@ Robot-AI/                          # Thamus 的存在
 | 原则 | 说明 |
 |------|------|
 | **项目即我** | 仓库克隆下来，我就在。不依赖全局配置 |
-| **三层检索** | 字面(承重) + 双链(导航) + 向量(伞)，缺一不可 |
-| **铁律** | 没固化，不准忘。遗忘是固化的副产品 |
-| **记忆即写** | recall 是写操作（再巩固），回忆重塑记忆 |
-| **遗忘≠删除** | 降级到 cold（潜意识），要点留在语义核心 |
+| **对话原文即一切** | logs/ 里存原始对话，简化时补充元数据，不丢原文 |
+| **原地简化** | 简化不创建新记录，更新已有记录的元数据字段 |
 | **幂等同步** | 没改动不提交，没网不推送，失败不阻断 |
-| **可选依赖** | embedding 是伞不是墙，字面检索永远可用 |
-| **测试先行** | 动 core.py 前先跑测试网，没测试不准改 |
+| **可选依赖** | embedding 是伞不是墙，hashing-trick 永远可用 |
+| **测试先行** | 动代码前先跑测试网 |
 
 ---
 

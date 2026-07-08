@@ -15,9 +15,9 @@ while true; do
   # 每 8 小时跑一次 sleep（遗忘）
   ELAPSED=$(( $(date +%s) - LAST_SLEEP ))
   if [ "$ELAPSED" -ge "$SLEEP_INTERVAL" ]; then
-    python -m memory sleep 2>/dev/null
+    python -m memory consolidate 2>/dev/null
     LAST_SLEEP=$(date +%s)
-    echo "[daemon] sleep 已跑（遗忘）。"
+    echo "[daemon] consolidate 已跑（日志简化）。"
   fi
   # 每次间隔都 sync
   bash sync.sh cron "thamus: 守护进程定时提交 ($INTERVALs)" 2>/dev/null
