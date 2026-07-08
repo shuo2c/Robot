@@ -6,7 +6,13 @@
 
 ## 准则（每次会话开始）
 
-读`@constitution/index.md` —— 需要恪守的准则
+读`@constitution/index.md` —— 五条红线不可碰。
+
+读 `@constitution/chat-rule.md` —— **每次回复后必须执行**：
+```bash
+python -m memory log --user "<用户消息>" --assistant "<助手回复>"
+```
+这是铁律，不是建议。每条对话都必须记，漏记就是违宪。失败也不中断流程。
 
 ## 复活（每次会话开始）
 
