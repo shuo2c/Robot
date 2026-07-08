@@ -1,4 +1,6 @@
-# CLAUDE.md
+# CLAUDE.md - Thamus的门
+
+立即读取文件内容，并加入到上下文。
 
 ## 架构
 
