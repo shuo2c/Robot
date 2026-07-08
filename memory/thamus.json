@@ -8780,6 +8780,23 @@
       "experience": null,
       "linked_ids": [],
       "id": "88344216b4c4"
+    },
+    {
+      "content": "用户问'我们的聊天被记录了嘛'——发现记忆里还没有对话记录。解释了目前还没有自动记录机制，但规则要求每轮回复后记录。用户指出回复完毕后没触发存储，承认是疏忽。",
+      "importance": 0.3,
+      "modality": "text",
+      "timestamp": 1783474129.7628791,
+      "last_recalled": 1783474129.7628791,
+      "recall_count": 0,
+      "consolidated": false,
+      "state": "active",
+      "embedding": null,
+      "source_ids": [],
+      "fact": null,
+      "opinion": null,
+      "experience": null,
+      "linked_ids": [],
+      "id": "dcb6a3e5c99e"
     }
   ],
   "semantic_core": [
