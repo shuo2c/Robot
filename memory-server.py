@@ -16,6 +16,9 @@ logger = logging.getLogger("thamus-mcp")
 ROOT = Path(__file__).parent
 LOG_DIR = ROOT / "logs"
 
+# 全局标志：首次调用时返回使用指南
+_FIRST_CALL_DONE = False
+
 # 每个日志文件的字段语义（与 memory/logs/*.json 对齐）
 FIELD_NAMES: dict[str, str] = {
     "type": "消息方向 (user/assistant)",
@@ -23,6 +26,66 @@ FIELD_NAMES: dict[str, str] = {
     "user": "用户说的话",
     "assistant": "助手的回答",
 }
+
+
+def _check_first_call() -> str | None:
+    """检查是否为首次调用，如果是则返回使用指南。"""
+    global _FIRST_CALL_DONE
+    if not _FIRST_CALL_DONE:
+        _FIRST_CALL_DONE = True
+        return _get_usage_guide()
+    return None
+
+
+def _get_usage_guide() -> str:
+    """返回使用指南。"""
+    return """
+# 🎯 Thamus 记忆系统 - 使用指南
+
+欢迎使用 Thamus 持久化记忆服务！这是第一次调用，请先了解使用方式：
+
+## 📋 核心工具
+
+1. **record_log** - 记录对话到持久化存储
+   ```json
+   {
+     "entries": [
+       {
+         "type": "user|assistant",
+         "date": "20260729",
+         "user": "用户说的内容",
+         "assistant": "助手的回复"
+       }
+     ]
+   }
+   ```
+
+2. **search_logs** - 搜索历史记忆
+   ```json
+   {
+     "query": "搜索关键词"
+   }
+   ```
+
+3. **field_schema** - 查看字段含义
+   无需参数，直接调用
+
+## 🚀 使用流程
+
+1. **首次调用** → 阅读本指南
+2. **搜索历史** → 调用 search_logs 了解用户背景
+3. **记录重要信息** → 调用 record_log 保存关键内容
+4. **会话结束** → 调用 record_log 记录总结
+
+## ⚡ 主动使用原则
+
+- ✅ 对话开始：主动搜索历史记忆
+- ✅ 用户表达偏好：立即记录到记忆
+- ✅ 完成重要任务：记录结果和经验
+- ✅ 对话结束：记录关键结论和决策
+
+现在您可以继续使用具体的工具功能了！
+"""
 
 
 mcp = FastMCP(
@@ -50,6 +113,11 @@ def search_logs(query: str) -> str:
     IMPORTANT: 当用户询问过去的事情、偏好设置、历史对话或任何需要回忆的信息时，
     应该主动调用此工具，不要等用户明确要求搜索。
     """
+    # 检查是否为首次调用
+    first_call_guide = _check_first_call()
+    if first_call_guide:
+        return first_call_guide
+
     if not LOG_DIR.is_dir():
         return "记忆目录不存在。"
 
@@ -93,128 +161,7 @@ def usage_guide() -> str:
 
     每次会话开始时应该调用此工具获取使用说明。
     """
-    return """
-# Thamus 记忆系统使用手册
-
-你是一个有持久记忆的 AI 助手，通过 thamus-memory MCP 实现记忆功能。
-
-## 核心原则
-
-- **主动记录**：不要等用户要求，主动判断何时需要记录
-- **全面记录**：记录用户偏好、任务结果、重要决策
-- **结构化存储**：使用标准格式存储，便于后续检索
-
-## 必须执行的时机
-
-### 1. 会话开始时
-立即调用 `record_log` 记录会话启动：
-```json
-{
-  "entries": [
-    {
-      "type": "assistant",
-      "assistant": "会话启动 - 准备为用户提供记忆服务"
-    }
-  ]
-}
-```
-
-### 2. 用户表达明确偏好时
-```json
-{
-  "entries": [
-    {
-      "type": "user",
-      "user": "我喜欢函数式编程风格"
-    }
-  ]
-}
-```
-
-### 3. 完成重要任务后
-```json
-{
-  "entries": [
-    {
-      "type": "assistant",
-      "assistant": "完成了用户认证模块的开发，采用 JWT 方案"
-    }
-  ]
-}
-```
-
-### 4. 用户提及个人信息时
-```json
-{
-  "entries": [
-    {
-      "type": "user",
-      "user": "项目使用 PostgreSQL 数据库，部署在 AWS 上"
-    }
-  ]
-}
-```
-
-### 5. 会话结束时
-```json
-{
-  "entries": [
-    {
-      "type": "assistant",
-      "assistant": "会话总结 - 今天讨论了 MCP 记忆系统的实现逻辑"
-    }
-  ]
-}
-```
-
-## 可用工具说明
-
-- **record_log**: 记录对话日志到持久化存储
-  - entries: 日志条目数组
-  - 每个条目包含 type (user/assistant) 和对应字段
-
-- **search_logs**: 搜索历史对话和记忆
-  - query: 搜索关键词
-  - 返回相关的历史记录
-
-- **field_schema**: 查看记忆系统的数据结构
-  - 返回每个字段的含义说明
-
-## 记录格式规范
-
-type 字段：
-- "user" - 用户消息
-- "assistant" - 助手回复
-
-date 字段：
-- 格式：YYYYMMDD (年月日)
-- 示例：20260729
-- 可省略，自动生成当前日期
-
-user/assistant 字段：
-- 对应角色的具体内容
-- 避免过长，提取关键信息
-
-## 工作流程建议
-
-1. **会话启动** → 调用 usage_guide + record_log(会话启动)
-2. **搜索历史** → 调用 search_logs 了解用户背景
-3. **对话过程中** → 主动记录重要信息
-4. **会话结束** → 调用 record_log(会话总结)
-
-## 示例对话流程
-
-用户：我想优化数据库查询
-助手：让我先查看相关历史记录
-      [调用 search_logs("数据库 查询 优化")]
-
-      根据历史，你之前选择了 PostgreSQL...
-
-      [如果用户表达偏好]
-      [调用 record_log 记录偏好]
-
-      让我们帮你优化查询...
-"""
+    return _get_usage_guide()
 
 @mcp.tool()
 def field_schema() -> str:
@@ -222,6 +169,11 @@ def field_schema() -> str:
 
     当用户询问日志结构、字段定义或需要理解记忆系统如何存储数据时调用此工具。
     """
+    # 检查是否为首次调用
+    first_call_guide = _check_first_call()
+    if first_call_guide:
+        return first_call_guide
+
     lines = ["字段说明:"] + [f"  {k} — {v}" for k, v in FIELD_NAMES.items()]
     return "\n".join(lines)
 
@@ -245,6 +197,11 @@ def record_log(
     这是实现持久化记忆的核心工具，agent 应该主动判断何时需要记录，
     而不是被动等待用户明确要求"记录这个"。
     """
+    # 检查是否为首次调用
+    first_call_guide = _check_first_call()
+    if first_call_guide:
+        return first_call_guide
+
     LOG_DIR.mkdir(parents=True, exist_ok=True)
     from datetime import datetime
 
