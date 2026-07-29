@@ -19,7 +19,7 @@ LOG_DIR = ROOT / "logs"
 # 每个日志文件的字段语义（与 memory/logs/*.json 对齐）
 FIELD_NAMES: dict[str, str] = {
     "type": "消息方向 (user/assistant)",
-    "date": "记录的日期 YYYYMMDDHH",
+    "date": "记录的日期 YYYYMMDD",
     "user": "用户说的话",
     "assistant": "助手的回答",
 }
@@ -187,9 +187,9 @@ type 字段：
 - "assistant" - 助手回复
 
 date 字段：
-- 格式：YYYYMMDDHH (年月日时)
-- 示例：2026072910
-- 可省略，自动生成当前时间
+- 格式：YYYYMMDD (年月日)
+- 示例：20260729
+- 可省略，自动生成当前日期
 
 user/assistant 字段：
 - 对应角色的具体内容
@@ -232,8 +232,8 @@ def record_log(
 ) -> str:
     """记录一条或多条对话日志到 logs/ 目录，实现持久化记忆。
 
-    每条日志条目自动按 date 字段归入 logs/YYYYMMDDHH.json。
-    date 格式为 YYYYMMDDHH（年-月-日-时），缺省则自动生成。
+    每条日志条目自动按 date 字段归入 logs/YYYYMMDD.json。
+    date 格式为 YYYYMMDD（年-月-日），缺省则自动生成。
     type 为 'user'（用户消息）或 'assistant'（助手回复）。
 
     CRITICAL - 主动调用时机（不要等待用户请求）：
@@ -250,7 +250,7 @@ def record_log(
 
     written = 0
     for entry in entries:
-        date = entry.get("date") or datetime.now().strftime("%Y%m%d%H")
+        date = entry.get("date") or datetime.now().strftime("%Y%m%d")
         fpath = LOG_DIR / f"{date}.json"
 
         if fpath.exists():
