@@ -17,6 +17,7 @@ desktop.ini
 __pycache__/
 *.py[cod]
 *$py.class
+venv/
 
 # 本地下载的模型文件（~900MB，README 有下载方法）
 models/
