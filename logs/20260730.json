@@ -16,5 +16,11 @@
     "date": "20260730",
     "user": "用户要求把启动文件和介绍文档放到一个文件夹内，文件夹名字要说明这是启动入口",
     "assistant": "完成了启动文件夹重构：\n\n1. **创建 bootstrap/ 文件夹**：\n   - 移动 memory-server.py 到 bootstrap/\n   - 移动 INSTRUCTIONS.md 到 bootstrap/\n   - bootstrap 名称表达\"启动引导\"的含义\n\n2. **更新导入路径**：\n   - bootstrap/memory-server.py 添加 sys.path 设置以导入父目录模块\n   - 更新所有测试脚本的文件路径引用\n\n3. **文件夹设计优势**：\n   - 清晰标识项目启动点\n   - 启动相关配置文件集中管理\n   - 启动逻辑和配置变更不影响业务代码\n   - INSTRUCTIONS.md 与启动文件放在一起\n\n4. **最终目录结构**：\n   - bootstrap/（启动入口）\n   - tools/（业务模块）\n   - config.py（全局配置）\n\n新开发者能快速找到启动入口，项目结构更加清晰专业！"
+  },
+  {
+    "type": "user",
+    "date": "20260730",
+    "user": "我在做一个robot-ai的项目，我很喜欢他",
+    "assistant": "已经记住用户很喜欢robot-ai项目，这是用户表达的重要偏好信息"
   }
 ]

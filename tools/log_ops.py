@@ -10,8 +10,9 @@ from mcp.server.fastmcp import FastMCP
 
 from config import LOG_DIR
 from tools.first_call import check_first_call
+from tools.rule_reference import add_rule_reference
 
-logger = logging.getLogger("thamus-mcp")
+logger = logging.getLogger("thamas-mcp")
 
 # 日志业务的局部配置：每个日志文件的字段语义
 FIELD_NAMES: dict[str, str] = {
@@ -60,7 +61,10 @@ def register_tools(mcp: FastMCP) -> None:
                         break
 
         if not results:
-            return f"未找到包含 '{query}' 的记录。"
+            return add_rule_reference(
+                f"未找到包含 '{query}' 的记录。\n\n💡 **建议**：如果没有找到相关记忆，这是与用户开始新对话的好机会。",
+                "core"
+            )
 
         out_lines = [f"找到 {len(results)} 条匹配："]
         for i, r in enumerate(results[:10], 1):
@@ -74,7 +78,10 @@ def register_tools(mcp: FastMCP) -> None:
             if assistant:
                 out_lines.append(f"  我:   {assistant}")
 
-        return "\n".join(out_lines)
+        return add_rule_reference(
+            "\n".join(out_lines) + f"\n\n💡 **提示**：找到 {len(results)} 条相关记忆，请根据这些信息更好地回应用户。",
+            "core"
+        )
 
     @mcp.tool()
     def record_log(entries: list[dict[str, str]]) -> str:
@@ -127,4 +134,7 @@ def register_tools(mcp: FastMCP) -> None:
 
             written += 1
 
-        return f"成功写入 {written} 条日志。"
+        return add_rule_reference(
+            f"成功写入 {written} 条日志。\n\n💡 **对话提醒**：请在对话结束时再次使用 record_log 记录总结和关键决策。",
+            "core"
+        )

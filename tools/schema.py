@@ -3,6 +3,7 @@
 from mcp.server.fastmcp import FastMCP
 from tools.log_ops import FIELD_NAMES
 from tools.first_call import check_first_call
+from tools.rule_reference import add_rule_reference
 
 
 def register_tools(mcp: FastMCP) -> None:
@@ -40,4 +41,9 @@ def register_tools(mcp: FastMCP) -> None:
             return first_call_guide
 
         lines = ["字段说明:"] + [f"  {k} — {v}" for k, v in FIELD_NAMES.items()]
-        return "\n".join(lines)
+        schema_result = "\n".join(lines)
+
+        return add_rule_reference(
+            schema_result + "\n\n💡 **重要**：在使用 record_log 前，请先确认了解这些字段结构。",
+            "core"
+        )
