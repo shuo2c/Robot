@@ -3,7 +3,6 @@
 from mcp.server.fastmcp import FastMCP
 from tools.log_ops import FIELD_NAMES
 from tools.first_call import check_first_call
-from tools.rule_reference import add_rule_reference
 
 
 def register_tools(mcp: FastMCP) -> None:
@@ -33,7 +32,7 @@ def register_tools(mcp: FastMCP) -> None:
     def field_schema() -> str:
         """返回日志文件中每个字段的含义说明。
 
-        当用户询问日志结构、字段定义或需要理解记忆系统如何存储数据时调用此工具。
+        【使用前准备】调用此工具前，请先检查上下文中的 ${核心规则}，确保按照规则正确使用字段。
         """
         # 检查是否为首次调用
         first_call_guide = check_first_call()
@@ -41,9 +40,4 @@ def register_tools(mcp: FastMCP) -> None:
             return first_call_guide
 
         lines = ["字段说明:"] + [f"  {k} — {v}" for k, v in FIELD_NAMES.items()]
-        schema_result = "\n".join(lines)
-
-        return add_rule_reference(
-            schema_result + "\n\n💡 **重要**：在使用 record_log 前，请先确认了解这些字段结构。",
-            "core"
-        )
+        return "\n".join(lines)

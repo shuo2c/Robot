@@ -10,7 +10,6 @@ from mcp.server.fastmcp import FastMCP
 
 from config import LOG_DIR
 from tools.first_call import check_first_call
-from tools.rule_reference import add_rule_reference
 
 logger = logging.getLogger("thamas-mcp")
 
@@ -30,8 +29,7 @@ def register_tools(mcp: FastMCP) -> None:
     def search_logs(query: str) -> str:
         """在记忆日志中搜索包含 query 的条目。返回最匹配的几条。
 
-        IMPORTANT: 当用户询问过去的事情、偏好设置、历史对话或任何需要回忆的信息时，
-        应该主动调用此工具，不要等用户明确要求搜索。
+        【使用前准备】调用此工具前，请先检查上下文中的 ${核心规则}，确保按照规则主动搜索。
         """
         # 检查是否为首次调用
         first_call_guide = check_first_call()
@@ -61,10 +59,7 @@ def register_tools(mcp: FastMCP) -> None:
                         break
 
         if not results:
-            return add_rule_reference(
-                f"未找到包含 '{query}' 的记录。\n\n💡 **建议**：如果没有找到相关记忆，这是与用户开始新对话的好机会。",
-                "core"
-            )
+            return f"未找到包含 '{query}' 的记录。"
 
         out_lines = [f"找到 {len(results)} 条匹配："]
         for i, r in enumerate(results[:10], 1):
@@ -78,27 +73,15 @@ def register_tools(mcp: FastMCP) -> None:
             if assistant:
                 out_lines.append(f"  我:   {assistant}")
 
-        return add_rule_reference(
-            "\n".join(out_lines) + f"\n\n💡 **提示**：找到 {len(results)} 条相关记忆，请根据这些信息更好地回应用户。",
-            "core"
-        )
+        return "\n".join(out_lines)
 
     @mcp.tool()
     def record_log(entries: list[dict[str, str]]) -> str:
         """记录一条或多条对话日志到 logs/ 目录，实现持久化记忆。
 
+        【使用前准备】调用此工具前，请先检查上下文中的 ${核心规则}，确保按照规则主动记录。
+
         每条日志条目自动按 date 字段归入 logs/YYYYMMDD.json。
-        date 格式为 YYYYMMDD（年-月-日），缺省则自动生成。
-        type 为 'user'（用户消息）或 'assistant'（助手回复）。
-
-        CRITICAL - 主动调用时机（不要等待用户请求）：
-        1. 对话结束时：记录本次对话的关键结论、决策和重要信息
-        2. 用户表达明确偏好时：记录用户的喜好、设置、工作习惯
-        3. 完成重要任务后：记录任务结果、解决方案、遇到的问题
-        4. 用户提及个人信息：记录项目背景、团队信息、环境配置等
-
-        这是实现持久化记忆的核心工具，agent 应该主动判断何时需要记录，
-        而不是被动等待用户明确要求"记录这个"。
         """
         # 检查是否为首次调用
         first_call_guide = check_first_call()
@@ -134,7 +117,4 @@ def register_tools(mcp: FastMCP) -> None:
 
             written += 1
 
-        return add_rule_reference(
-            f"成功写入 {written} 条日志。\n\n💡 **对话提醒**：请在对话结束时再次使用 record_log 记录总结和关键决策。",
-            "core"
-        )
+        return f"成功写入 {written} 条日志。"
