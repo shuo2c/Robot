@@ -18,10 +18,19 @@ instructions_file = Path("bootstrap") / "INSTRUCTIONS.md"
 instructions_content = instructions_file.read_text(encoding="utf-8")
 
 required_markers = [
+    "${project|",
+    "${version-info|",
+    "${service-description|",
+    "${capabilities|",
+    "${workflow-rule|",
     "${core|",
     "${thamus|",
     "${version|",
-    "${tools-rules|"
+    "${tools-rules|",
+    "${standard-workflow|",
+    "${active-mind|",
+    "${usage-principles|",
+    "${self-concept|"
 ]
 
 for marker in required_markers:
@@ -36,15 +45,15 @@ print("-" * 60)
 
 tool_files = {
     "log_ops.py": {
-        "search_logs": ["${core}", "${tools-rules}"],
-        "record_log": ["${core}", "${tools-rules}"]
+        "search_logs": ["${core}", "${workflow-rule}", "${standard-workflow}", "${tools-rules}"],
+        "record_log": ["${core}", "${workflow-rule}", "${active-mind}", "${tools-rules}"]
     },
     "schema.py": {
         "field_schema": ["${core}"],
-        "usage_guide": ["${thamus}"]
+        "usage_guide": ["${project}", "${service-description}", "${capabilities}", "${thamus}"]
     },
     "version.py": {
-        "version": ["${version}"]
+        "version": ["${version}", "${version-info}"]
     }
 }
 
@@ -69,10 +78,19 @@ print("\n[Test 3] 验证标记的内容结构:")
 print("-" * 60)
 
 marker_descriptions = {
+    "${project|": "项目介绍",
+    "${version-info|": "当前版本",
+    "${service-description|": "服务描述",
+    "${capabilities|": "核心能力",
+    "${workflow-rule|": "工作流程规则",
     "${core|": "主动记忆规则",
     "${thamus|": "Thamus 人格定义",
     "${version|": "版本信息格式",
-    "${tools-rules|": "工具调用通用规则"
+    "${tools-rules|": "工具调用通用规则",
+    "${standard-workflow|": "标准工作流程",
+    "${active-mind|": "主动性理念",
+    "${usage-principles|": "使用原则",
+    "${self-concept|": "自我概念"
 }
 
 for marker, description in marker_descriptions.items():
