@@ -29,7 +29,7 @@ def register_tools(mcp: FastMCP) -> None:
     def search_logs(query: str) -> str:
         """在记忆日志中搜索包含 query 的条目。返回最匹配的几条。
 
-        【使用前准备】调用此工具前，请先检查上下文中的 ${核心规则}，确保按照规则主动搜索。
+        【使用前准备】调用此工具前，请先检索上下文中的 ${core} 和 ${tools-rules}，确保按照主动记忆规则搜索。
         """
         # 检查是否为首次调用
         first_call_guide = check_first_call()
@@ -79,7 +79,7 @@ def register_tools(mcp: FastMCP) -> None:
     def record_log(entries: list[dict[str, str]]) -> str:
         """记录一条或多条对话日志到 logs/ 目录，实现持久化记忆。
 
-        【使用前准备】调用此工具前，请先检查上下文中的 ${核心规则}，确保按照规则主动记录。
+        【使用前准备】调用此工具前，请先检索上下文中的 ${core} 和 ${tools-rules}，确保按照主动记忆规则记录。
 
         每条日志条目自动按 date 字段归入 logs/YYYYMMDD.json。
         """

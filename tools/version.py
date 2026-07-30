@@ -9,5 +9,8 @@ def register_tools(mcp: FastMCP) -> None:
 
     @mcp.tool()
     def version() -> str:
-        """返回 MCP 服务的版本信息。"""
+        """返回 MCP 服务的版本信息。
+
+        【使用前准备】调用此工具前，请先检索上下文中的 ${version} 了解版本信息的具体格式和含义。
+        """
         return f"thamas-memory v{__version__}"
