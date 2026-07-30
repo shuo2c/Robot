@@ -1,8 +1,0 @@
-[
-  {
-    "type": "assistant",
-    "date": "20260729",
-    "user": "",
-    "assistant": "完成了 CLAUDE.md 简化和首次调用引导功能的实现：1) 将 CLAUDE.md 简化为一句话指令 2) 在 memory-server.py 中实现首次调用时返回使用指南的机制 3) LLM 第一次调用任何 thamus-memory 工具时会先收到使用指南，理解后再进行实际调用。提交哈希：7710fe7"
-  }
-]

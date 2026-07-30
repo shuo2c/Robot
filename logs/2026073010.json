@@ -1,0 +1,20 @@
+[
+  {
+    "type": "user",
+    "date": "2026073010",
+    "user": "",
+    "assistant": ""
+  },
+  {
+    "type": "user",
+    "date": "2026073010",
+    "user": "我现在好饿，想吃烤肠",
+    "assistant": ""
+  },
+  {
+    "type": "assistant",
+    "date": "2026073010",
+    "user": "",
+    "assistant": ""
+  }
+]
