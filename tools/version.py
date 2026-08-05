@@ -9,5 +9,16 @@ def register_tools(mcp: FastMCP) -> None:
 
     @mcp.tool()
     def version() -> str:
-        """返回 MCP 服务的版本信息。"""
-        return f"thamas-memory v{__version__}"
+        """返回 Thamus 记忆服务的版本信息。
+
+        【使用前准备】调用此工具前，请先检索上下文中的 ${version} 和 ${version-info} 了解版本信息的具体格式和当前版本。
+
+        【返回值说明】
+        - 返回格式："thamus-memory v{版本号}"（如 "thamus-memory v0.0.1"）
+        - 用于标识当前 MCP 服务的版本
+
+        【使用时机】
+        - 需要确认服务版本时
+        - 问题排查时确认版本信息
+        """
+        return f"thamus-memory v{__version__}"

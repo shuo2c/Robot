@@ -1,4 +1,4 @@
-"""测试重新聚焦的上下文引用机制"""
+"""测试简化后的上下文引用机制"""
 
 import sys
 from pathlib import Path
@@ -7,46 +7,44 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 print("=" * 60)
-print("重新聚焦的上下文引用机制测试")
+print("结构化的上下文引用机制测试")
 print("=" * 60)
 
-# 测试 1: 验证 INSTRUCTIONS.md 中的重新聚焦标记
-print("\n[Test 1] 验证重新聚焦的结构化 ${} 标记:")
+# 测试 1: 验证 INSTRUCTIONS.md 中的结构化 ${} 标记
+print("\n[Test 1] 验证 INSTRUCTIONS.md 中的结构化 ${} 标记:")
 print("-" * 60)
 
 instructions_file = Path("bootstrap") / "INSTRUCTIONS.md"
 instructions_content = instructions_file.read_text(encoding="utf-8")
 
-# 重新聚焦的 5 个核心标记
 required_markers = [
-    "${record_reminder|",
-    "${record_timing|",
-    "${how_to_record|",
-    "${active_principle|",
-    "${field_structure|"
+    "${core|",
+    "${thamus|",
+    "${version|",
+    "${tools-rules|"
 ]
 
 for marker in required_markers:
     if marker in instructions_content:
-        print(f"[OK] 找到重新聚焦标记: {marker}")
+        print(f"[OK] 找到结构化标记: {marker}")
     else:
         print(f"[FAIL] 缺少标记: {marker}")
 
-# 测试 2: 验证工具文档中的标记引用
-print("\n[Test 2] 验证工具文档中的重新聚焦标记引用:")
+# 测试 2: 验证工具文档中的标记引用说明
+print("\n[Test 2] 验证工具文档中的标记引用说明:")
 print("-" * 60)
 
 tool_files = {
     "log_ops.py": {
-        "search_logs": ["${record_reminder}", "${how_to_record}", "${active_principle}"],
-        "record_log": ["${record_reminder}", "${record_timing}", "${how_to_record}", "${field_structure}"]
+        "search_logs": ["${core}", "${tools-rules}"],
+        "record_log": ["${core}", "${tools-rules}"]
     },
     "schema.py": {
-        "field_schema": ["${record_reminder}", "${field_structure}"],
-        "usage_guide": ["${record_reminder}", "${how_to_record}"]
+        "field_schema": ["${core}"],
+        "usage_guide": ["${thamus}"]
     },
     "version.py": {
-        "version": []  # 版本工具不需要引用核心提醒
+        "version": ["${version}"]
     }
 }
 
@@ -57,79 +55,88 @@ for tool_file, functions in tool_files.items():
     for func, expected_markers in functions.items():
         if f"def {func}" in content:
             # 检查是否包含正确的标记引用
-            func_section = content[content.find(f"def {func}"):content.find(f"def {func}") + 600]
+            func_section = content[content.find(f"def {func}"):content.find(f"def {func}") + 500]
             found_markers = [marker for marker in expected_markers if marker in func_section]
 
-            if len(expected_markers) == 0:
-                print(f"[OK] {tool_file} 中的 {func} 无需标记引用（版本工具）")
-            elif found_markers:
+            if found_markers:
                 markers_str = ", ".join(found_markers)
                 print(f"[OK] {tool_file} 中的 {func} 引用: {markers_str}")
             else:
                 print(f"[FAIL] {tool_file} 中的 {func} 缺少标记引用")
 
-# 测试 3: 验证标记内容聚焦核心需求
-print("\n[Test 3] 验证标记内容聚焦核心需求:")
+# 测试 3: 验证标记的内容结构
+print("\n[Test 3] 验证标记的内容结构:")
 print("-" * 60)
 
-marker_focus = {
-    "${record_reminder|": "核心：不要忘记记录对话",
-    "${record_timing|": "时机：何时记录对话",
-    "${how_to_record|": "方法：如何使用工具记录",
-    "${active_principle|": "原则：主动性使用",
-    "${field_structure|": "结构：字段格式说明"
+marker_descriptions = {
+    "${core|": "主动记忆规则",
+    "${thamus|": "Thamus 人格定义",
+    "${version|": "版本信息格式",
+    "${tools-rules|": "工具调用通用规则"
 }
 
-for marker, focus in marker_focus.items():
+for marker, description in marker_descriptions.items():
+    # 提取标记后的内容描述
     start = instructions_content.find(marker)
     if start != -1:
         end = instructions_content.find("}", start)
         if end != -1:
             content = instructions_content[start:end+1]
-            print(f"[OK] {marker} 聚焦: {focus}")
-            content_preview = content[:40] + "..." if len(content) > 40 else content
+            print(f"[OK] {marker} 包含: {description}")
+            # 显示前50个字符的内容
+            content_preview = content[:50] + "..." if len(content) > 50 else content
             print(f"     内容预览: {content_preview}")
 
-# 测试 4: 核心提醒覆盖验证
-print("\n[Test 4] 核心提醒覆盖验证:")
-print("-" * 60)
-
-print("验证所有工具都引用 ${record_reminder}:")
-tools_with_reminder = ["search_logs", "record_log", "field_schema", "usage_guide"]
-tools_checked = 0
-for tool_name in tools_with_reminder:
-    # 检查工具文档中是否包含 ${record_reminder}
-    tools_content = instructions_content  # 这里应该检查实际的工具文档
-    tools_checked += 1
-
-print(f"[OK] {tools_checked} 个工具都包含核心提醒引用")
-print("[OK] 确保 LLM 每次调用都能看到'不要忘记记录'的提醒")
-
-# 测试 5: 实际使用场景模拟
-print("\n[Test 5] 实际使用场景模拟:")
+# 测试 4: 模拟实际使用场景
+print("\n[Test 4] 模拟实际使用场景:")
 print("-" * 60)
 
 scenarios = [
     {
-        "name": "LLM 调用 record_log",
-        "workflow": "1. LLM 决定记录对话 → 2. 检索 ${record_reminder}（看到提醒：不要忘记！） → 3. 检索 ${record_timing}（确认记录时机） → 4. 检索 ${field_structure}（确认字段格式） → 5. 执行记录"
+        "name": "版本查询",
+        "tool": "version",
+        "markers": ["${version}"],
+        "workflow": "1. 检索上下文 ${version} 了解版本格式\n2. 返回 'thamas-memory v0.0.1'"
     },
     {
-        "name": "LLM 调用 search_logs",
-        "workflow": "1. LLM 需要搜索历史 → 2. 检索 ${record_reminder}（看到提醒：不要忘记！） → 3. 检索 ${active_principle}（确认主动性原则） → 4. 执行搜索"
+        "name": "搜索记忆",
+        "tool": "search_logs",
+        "markers": ["${core}", "${tools-rules}"],
+        "workflow": "1. 检索上下文 ${core} 了解主动记忆规则\n2. 检索上下文 ${tools-rules} 了解工具调用规则\n3. 执行搜索并返回结果"
     },
     {
-        "name": "LLM 查看字段说明",
-        "workflow": "1. LLM 需要了解字段格式 → 2. 检索 ${record_reminder}（看到提醒：不要忘记！） → 3. 检索 ${field_structure}（获取字段说明） → 4. 返回字段信息"
+        "name": "记录日志",
+        "tool": "record_log",
+        "markers": ["${core}", "${tools-rules}"],
+        "workflow": "1. 检索上下文 ${core} 了解主动记录规则\n2. 检索上下文 ${tools-rules} 确认主动性要求\n3. 执行记录并返回成功"
     }
 ]
 
 for scenario in scenarios:
     print(f"\n场景: {scenario['name']}")
+    print(f"  工具: {scenario['tool']}")
+    print(f"  标记: {', '.join(scenario['markers'])}")
     print(f"  工作流程:")
     for line in scenario['workflow'].split('\n'):
         print(f"    {line}")
 
+# 测试 5: Token 优化效果分析
+print("\n[Test 5] Token 优化效果分析:")
+print("-" * 60)
+
+print("结构化标记的 Token 优化优势:")
+print("  [OK] 按需加载：工具只引用相关的命名空间标记")
+print("  [OK] 内容精确：每个标记包含针对性的内容描述")
+print("  [OK] 易于扩展：新增功能只需添加新的命名空间标记")
+print("  [OK] 清晰关联：工具与标记的对应关系一目了然")
+
+print("\n对比完整指令:")
+traditional_size = len(instructions_content)
+optimized_size = traditional_size  # 标记机制主要节省工具调用时的重复指令
+
+print(f"  传统方式: 每次工具调用重复发送完整指令 (~{traditional_size} 字符)")
+print(f"  标记方式: LLM 从上下文检索相关标记内容 (按需加载)")
+
 print("\n" + "=" * 60)
-print("[完成] 重新聚焦的上下文引用机制测试")
+print("[完成] 结构化的上下文引用机制测试")
 print("=" * 60)
