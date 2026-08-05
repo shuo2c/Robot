@@ -7,53 +7,46 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 print("=" * 60)
-print("结构化的上下文引用机制测试")
+print("简化后的上下文引用机制测试")
 print("=" * 60)
 
-# 测试 1: 验证 INSTRUCTIONS.md 中的结构化 ${} 标记
-print("\n[Test 1] 验证 INSTRUCTIONS.md 中的结构化 ${} 标记:")
+# 测试 1: 验证 INSTRUCTIONS.md 中的简化 ${} 标记
+print("\n[Test 1] 验证简化后的结构化 ${} 标记:")
 print("-" * 60)
 
 instructions_file = Path("bootstrap") / "INSTRUCTIONS.md"
 instructions_content = instructions_file.read_text(encoding="utf-8")
 
+# 从 13 个标记简化为 5 个标记
 required_markers = [
     "${project|",
-    "${version-info|",
-    "${service-description|",
-    "${capabilities|",
-    "${workflow-rule|",
-    "${core|",
+    "${rules|",
+    "${workflow|",
     "${thamus|",
-    "${version|",
-    "${tools-rules|",
-    "${standard-workflow|",
-    "${active-mind|",
-    "${usage-principles|",
-    "${self-concept|"
+    "${version|"
 ]
 
 for marker in required_markers:
     if marker in instructions_content:
-        print(f"[OK] 找到结构化标记: {marker}")
+        print(f"[OK] 找到简化标记: {marker}")
     else:
         print(f"[FAIL] 缺少标记: {marker}")
 
-# 测试 2: 验证工具文档中的标记引用说明
-print("\n[Test 2] 验证工具文档中的标记引用说明:")
+# 测试 2: 验证工具文档中的简化标记引用
+print("\n[Test 2] 验证工具文档中的简化标记引用:")
 print("-" * 60)
 
 tool_files = {
     "log_ops.py": {
-        "search_logs": ["${core}", "${workflow-rule}", "${standard-workflow}", "${tools-rules}"],
-        "record_log": ["${core}", "${workflow-rule}", "${active-mind}", "${tools-rules}"]
+        "search_logs": ["${rules}", "${workflow}"],
+        "record_log": ["${rules}", "${workflow}"]
     },
     "schema.py": {
-        "field_schema": ["${core}"],
-        "usage_guide": ["${project}", "${service-description}", "${capabilities}", "${thamus}"]
+        "field_schema": ["${rules}"],
+        "usage_guide": ["${project}", "${thamus}"]
     },
     "version.py": {
-        "version": ["${version}", "${version-info}"]
+        "version": ["${project}", "${version}"]
     }
 }
 
@@ -73,24 +66,16 @@ for tool_file, functions in tool_files.items():
             else:
                 print(f"[FAIL] {tool_file} 中的 {func} 缺少标记引用")
 
-# 测试 3: 验证标记的内容结构
-print("\n[Test 3] 验证标记的内容结构:")
+# 测试 3: 验证简化标记的内容整合
+print("\n[Test 3] 验证简化标记的内容整合:")
 print("-" * 60)
 
 marker_descriptions = {
-    "${project|": "项目介绍",
-    "${version-info|": "当前版本",
-    "${service-description|": "服务描述",
-    "${capabilities|": "核心能力",
-    "${workflow-rule|": "工作流程规则",
-    "${core|": "主动记忆规则",
-    "${thamus|": "Thamus 人格定义",
-    "${version|": "版本信息格式",
-    "${tools-rules|": "工具调用通用规则",
-    "${standard-workflow|": "标准工作流程",
-    "${active-mind|": "主动性理念",
-    "${usage-principles|": "使用原则",
-    "${self-concept|": "自我概念"
+    "${project|": "项目整合信息（版本、服务描述、核心能力）",
+    "${rules|": "核心使用规则（主动性、字段结构）",
+    "${workflow|": "标准工作流程（四步流程）",
+    "${thamus|": "Thamus 人格与哲学整合",
+    "${version|": "版本信息格式"
 }
 
 for marker, description in marker_descriptions.items():
@@ -105,56 +90,46 @@ for marker, description in marker_descriptions.items():
             content_preview = content[:50] + "..." if len(content) > 50 else content
             print(f"     内容预览: {content_preview}")
 
-# 测试 4: 模拟实际使用场景
-print("\n[Test 4] 模拟实际使用场景:")
+# 测试 4: 对比简化前后的标记数量
+print("\n[Test 4] 简化效果对比:")
 print("-" * 60)
 
-scenarios = [
-    {
-        "name": "版本查询",
-        "tool": "version",
-        "markers": ["${version}"],
-        "workflow": "1. 检索上下文 ${version} 了解版本格式\n2. 返回 'thamas-memory v0.0.1'"
-    },
-    {
-        "name": "搜索记忆",
-        "tool": "search_logs",
-        "markers": ["${core}", "${tools-rules}"],
-        "workflow": "1. 检索上下文 ${core} 了解主动记忆规则\n2. 检索上下文 ${tools-rules} 了解工具调用规则\n3. 执行搜索并返回结果"
-    },
-    {
-        "name": "记录日志",
-        "tool": "record_log",
-        "markers": ["${core}", "${tools-rules}"],
-        "workflow": "1. 检索上下文 ${core} 了解主动记录规则\n2. 检索上下文 ${tools-rules} 确认主动性要求\n3. 执行记录并返回成功"
-    }
+old_markers = [
+    "${project|", "${version-info|", "${service-description|", "${capabilities|",
+    "${workflow-rule|", "${core|", "${thamus|", "${version|}", "${tools-rules|}",
+    "${standard-workflow|", "${active-mind|", "${usage-principles|}", "${self-concept|"
 ]
 
-for scenario in scenarios:
-    print(f"\n场景: {scenario['name']}")
-    print(f"  工具: {scenario['tool']}")
-    print(f"  标记: {', '.join(scenario['markers'])}")
-    print(f"  工作流程:")
-    for line in scenario['workflow'].split('\n'):
-        print(f"    {line}")
+new_markers = ["${project|", "${rules|", "${workflow|", "${thamus|", "${version|}"]
+
+print(f"简化前标记数量: {len(old_markers)} 个")
+print(f"简化后标记数量: {len(new_markers)} 个")
+print(f"减少标记数量: {len(old_markers) - len(new_markers)} 个 ({(len(old_markers) - len(new_markers)) / len(old_markers) * 100:.1f}% 减少)")
 
 # 测试 5: Token 优化效果分析
 print("\n[Test 5] Token 优化效果分析:")
 print("-" * 60)
 
-print("结构化标记的 Token 优化优势:")
-print("  [OK] 按需加载：工具只引用相关的命名空间标记")
-print("  [OK] 内容精确：每个标记包含针对性的内容描述")
-print("  [OK] 易于扩展：新增功能只需添加新的命名空间标记")
-print("  [OK] 清晰关联：工具与标记的对应关系一目了然")
+print("简化后的标记优化优势:")
+print("  [OK] 标记数量大幅减少：从 13 个减少到 5 个")
+print("  [OK] 内容高度整合：相关内容合并到同一命名空间")
+print("  [OK] 引用更加简洁：工具文档中的标记引用更少")
+print("  [OK] 维护成本降低：需要管理的标记关系更简单")
 
 print("\n对比完整指令:")
 traditional_size = len(instructions_content)
 optimized_size = traditional_size  # 标记机制主要节省工具调用时的重复指令
 
 print(f"  传统方式: 每次工具调用重复发送完整指令 (~{traditional_size} 字符)")
-print(f"  标记方式: LLM 从上下文检索相关标记内容 (按需加载)")
+print(f"  简化标记: LLM 从上下文检索相关标记内容 (按需加载)")
+
+print("\n简化整合示例:")
+print("  ${project|} ← 整合了: project + version-info + service-description + capabilities")
+print("  ${rules|}   ← 整合了: core + tools-rules + workflow-rule")
+print("  ${workflow|} ← 整合了: standard-workflow + active-mind + usage-principles")
+print("  ${thamus|}  ← 整合了: thamus + self-concept")
+print("  ${version|} ← 保留原有版本信息格式")
 
 print("\n" + "=" * 60)
-print("[完成] 结构化的上下文引用机制测试")
+print("[完成] 简化后的上下文引用机制测试")
 print("=" * 60)
