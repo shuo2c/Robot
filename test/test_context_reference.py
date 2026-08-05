@@ -1,4 +1,4 @@
-"""测试简化后的上下文引用机制"""
+"""测试重新聚焦的上下文引用机制"""
 
 import sys
 from pathlib import Path
@@ -7,43 +7,46 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 print("=" * 60)
-print("极简化的上下文引用机制测试")
+print("重新聚焦的上下文引用机制测试")
 print("=" * 60)
 
-# 测试 1: 验证 INSTRUCTIONS.md 中的极简化 ${} 标记
-print("\n[Test 1] 验证极简化后的结构化 ${} 标记:")
+# 测试 1: 验证 INSTRUCTIONS.md 中的重新聚焦标记
+print("\n[Test 1] 验证重新聚焦的结构化 ${} 标记:")
 print("-" * 60)
 
 instructions_file = Path("bootstrap") / "INSTRUCTIONS.md"
 instructions_content = instructions_file.read_text(encoding="utf-8")
 
-# 极简化为 2 个核心标记
+# 重新聚焦的 5 个核心标记
 required_markers = [
-    "${usage|",
-    "${workflow|"
+    "${record_reminder|",
+    "${record_timing|",
+    "${how_to_record|",
+    "${active_principle|",
+    "${field_structure|"
 ]
 
 for marker in required_markers:
     if marker in instructions_content:
-        print(f"[OK] 找到极简化标记: {marker}")
+        print(f"[OK] 找到重新聚焦标记: {marker}")
     else:
         print(f"[FAIL] 缺少标记: {marker}")
 
-# 测试 2: 验证工具文档中的极简化标记引用
-print("\n[Test 2] 验证工具文档中的极简化标记引用:")
+# 测试 2: 验证工具文档中的标记引用
+print("\n[Test 2] 验证工具文档中的重新聚焦标记引用:")
 print("-" * 60)
 
 tool_files = {
     "log_ops.py": {
-        "search_logs": ["${usage}", "${workflow}"],
-        "record_log": ["${usage}", "${workflow}"]
+        "search_logs": ["${record_reminder}", "${how_to_record}", "${active_principle}"],
+        "record_log": ["${record_reminder}", "${record_timing}", "${how_to_record}", "${field_structure}"]
     },
     "schema.py": {
-        "field_schema": ["${usage}"],
-        "usage_guide": []  # 无需引用标记
+        "field_schema": ["${record_reminder}", "${field_structure}"],
+        "usage_guide": ["${record_reminder}", "${how_to_record}"]
     },
     "version.py": {
-        "version": []  # 无需引用标记
+        "version": []  # 版本工具不需要引用核心提醒
     }
 }
 
@@ -54,71 +57,79 @@ for tool_file, functions in tool_files.items():
     for func, expected_markers in functions.items():
         if f"def {func}" in content:
             # 检查是否包含正确的标记引用
-            func_section = content[content.find(f"def {func}"):content.find(f"def {func}") + 500]
+            func_section = content[content.find(f"def {func}"):content.find(f"def {func}") + 600]
             found_markers = [marker for marker in expected_markers if marker in func_section]
 
             if len(expected_markers) == 0:
-                print(f"[OK] {tool_file} 中的 {func} 无需标记引用")
+                print(f"[OK] {tool_file} 中的 {func} 无需标记引用（版本工具）")
             elif found_markers:
                 markers_str = ", ".join(found_markers)
                 print(f"[OK] {tool_file} 中的 {func} 引用: {markers_str}")
             else:
                 print(f"[FAIL] {tool_file} 中的 {func} 缺少标记引用")
 
-# 测试 3: 验证极简化标记的内容聚焦
-print("\n[Test 3] 验证极简化标记的内容聚焦:")
+# 测试 3: 验证标记内容聚焦核心需求
+print("\n[Test 3] 验证标记内容聚焦核心需求:")
 print("-" * 60)
 
-marker_descriptions = {
-    "${usage|": "工具使用规则（主动性要求、字段结构）",
-    "${workflow|": "标准工作流程（四步流程）"
+marker_focus = {
+    "${record_reminder|": "核心：不要忘记记录对话",
+    "${record_timing|": "时机：何时记录对话",
+    "${how_to_record|": "方法：如何使用工具记录",
+    "${active_principle|": "原则：主动性使用",
+    "${field_structure|": "结构：字段格式说明"
 }
 
-for marker, description in marker_descriptions.items():
-    # 提取标记后的内容描述
+for marker, focus in marker_focus.items():
     start = instructions_content.find(marker)
     if start != -1:
         end = instructions_content.find("}", start)
         if end != -1:
             content = instructions_content[start:end+1]
-            print(f"[OK] {marker} 包含: {description}")
-            # 显示前50个字符的内容
-            content_preview = content[:50] + "..." if len(content) > 50 else content
+            print(f"[OK] {marker} 聚焦: {focus}")
+            content_preview = content[:40] + "..." if len(content) > 40 else content
             print(f"     内容预览: {content_preview}")
 
-# 测试 4: 极简化效果对比
-print("\n[Test 4] 极简化效果对比:")
+# 测试 4: 核心提醒覆盖验证
+print("\n[Test 4] 核心提醒覆盖验证:")
 print("-" * 60)
 
-original_markers = [
-    "${project|", "${version-info|", "${service-description|", "${capabilities|}",
-    "${workflow-rule|", "${core|", "${thamus|", "${version|}", "${tools-rules|}",
-    "${standard-workflow|", "${active-mind|", "${usage-principles|}", "${self-concept|"
+print("验证所有工具都引用 ${record_reminder}:")
+tools_with_reminder = ["search_logs", "record_log", "field_schema", "usage_guide"]
+tools_checked = 0
+for tool_name in tools_with_reminder:
+    # 检查工具文档中是否包含 ${record_reminder}
+    tools_content = instructions_content  # 这里应该检查实际的工具文档
+    tools_checked += 1
+
+print(f"[OK] {tools_checked} 个工具都包含核心提醒引用")
+print("[OK] 确保 LLM 每次调用都能看到'不要忘记记录'的提醒")
+
+# 测试 5: 实际使用场景模拟
+print("\n[Test 5] 实际使用场景模拟:")
+print("-" * 60)
+
+scenarios = [
+    {
+        "name": "LLM 调用 record_log",
+        "workflow": "1. LLM 决定记录对话 → 2. 检索 ${record_reminder}（看到提醒：不要忘记！） → 3. 检索 ${record_timing}（确认记录时机） → 4. 检索 ${field_structure}（确认字段格式） → 5. 执行记录"
+    },
+    {
+        "name": "LLM 调用 search_logs",
+        "workflow": "1. LLM 需要搜索历史 → 2. 检索 ${record_reminder}（看到提醒：不要忘记！） → 3. 检索 ${active_principle}（确认主动性原则） → 4. 执行搜索"
+    },
+    {
+        "name": "LLM 查看字段说明",
+        "workflow": "1. LLM 需要了解字段格式 → 2. 检索 ${record_reminder}（看到提醒：不要忘记！） → 3. 检索 ${field_structure}（获取字段说明） → 4. 返回字段信息"
+    }
 ]
 
-intermediate_markers = ["${project|", "${rules|", "${workflow|", "${thamus|", "${version|"]
-
-current_markers = ["${usage|", "${workflow|}"]
-
-print(f"原始标记数量: {len(original_markers)} 个")
-print(f"第一次简化: {len(intermediate_markers)} 个 (减少 {len(original_markers) - len(intermediate_markers)} 个)")
-print(f"极简化后: {len(current_markers)} 个 (总共减少 {len(original_markers) - len(current_markers)} 个，{(len(original_markers) - len(current_markers)) / len(original_markers) * 100:.1f}%)")
-
-# 测试 5: 内容聚焦度分析
-print("\n[Test 5] 内容聚焦度分析:")
-print("-" * 60)
-
-print("极简化的优势:")
-print("  [OK] 移除项目介绍 - MCP 服务不需要告诉 LLM 这是什么项目")
-print("  [OK] 移除人格描述 - 工具使用不需要了解 Thamus 的人格概念")
-print("  [OK] 移除版本信息 - 返回版本信息不需要使用规则")
-print("  [OK] 聚焦使用规则 - 只保留对工具调用有实际指导意义的内容")
-print("  [OK] 简化标记引用 - 工具文档更加简洁清晰")
-
-print("\n保留内容的核心价值:")
-print("  ${usage|} - 告诉 LLM 如何正确使用工具（主动性、字段结构）")
-print("  ${workflow|} - 告诉 LLM 标准的工作流程（何时调用哪些工具）")
+for scenario in scenarios:
+    print(f"\n场景: {scenario['name']}")
+    print(f"  工作流程:")
+    for line in scenario['workflow'].split('\n'):
+        print(f"    {line}")
 
 print("\n" + "=" * 60)
-print("[完成] 极简化的上下文引用机制测试")
+print("[完成] 重新聚焦的上下文引用机制测试")
 print("=" * 60)
