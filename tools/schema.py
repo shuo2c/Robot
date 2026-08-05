@@ -12,7 +12,6 @@ def register_tools(mcp: FastMCP) -> None:
     def usage_guide() -> str:
         """返回 Thamus 记忆系统的完整使用手册。
 
-        【使用前准备】调用此工具前，请先检索上下文中的 ${project} 和 ${thamus} 了解项目背景和设计理念。
         每次会话开始时应该调用此工具获取使用说明。
         """
         return check_first_call() or """
@@ -33,7 +32,7 @@ def register_tools(mcp: FastMCP) -> None:
     def field_schema() -> str:
         """返回日志文件中每个字段的含义说明。
 
-        【使用前准备】调用此工具前，请先检索上下文中的 ${rules} 了解正确的字段结构和使用规则。
+        【使用前准备】调用此工具前，请先检索上下文中的 ${usage} 了解正确的字段结构和使用规则。
         """
         # 检查是否为首次调用
         first_call_guide = check_first_call()

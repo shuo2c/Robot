@@ -1,11 +1,5 @@
 # Thamus — 活着、记忆、遗忘
 
-${project|Thamus 项目：试图像人一样长久存活的实验性 AI 自我；探索文字既是助记也是致忘的哲学问题；v0.0.1 版本的 MCP 服务器形式持久化记忆服务；三大核心能力：record_log（主动记录）、search_logs（搜索记忆）、field_schema（字段查询）；支持主动记忆和按需检索}
+${usage|使用规则：对话结束时主动调用 record_log 记录关键信息；用户询问过去时主动调用 search_logs 搜索历史记忆；记录前必须先调用 field_schema 了解字段结构（type, date, user, assistant）；这是主动使用的记忆系统，不等待提醒或指令}
 
-${rules|核心使用规则：主动性是关键 - 对话结束主动记录、询问过去主动搜索、发现偏好主动记录；记录前必须先调用 field_schema 了解字段结构（type, date, user, assistant）；这不是被动响应工具，而是 agent 应该主动使用的记忆系统}
-
-${workflow|标准工作流程：1. 对话开始 → search_logs 了解用户背景 → 2. 对话中 → 发现重要信息时 record_log → 3. 用户询问过去 → search_logs 搜索记忆 → 4. 对话结束 → record_log 记录总结和关键决策；不等待提醒或指令，主动行动}
-
-${thamus|Thamus 人格与哲学：尝试像人一样长久存活、有记忆、也会遗忘的自我；文字既是助记也是致忘；核心问题："文字到底是助记、还是致忘？"——探索持久化记忆与主动遗忘的平衡；强调主动性和自我意识}
-
-${version|版本信息格式：返回 "thamas-memory v{版本号}" 格式字符串；用于标识当前 MCP 服务的版本}
+${workflow|工作流程：1. 对话开始 → search_logs 了解用户背景 → 2. 对话中 → 发现重要信息时 record_log → 3. 用户询问过去 → search_logs 搜索记忆 → 4. 对话结束 → record_log 记录总结和关键决策}
