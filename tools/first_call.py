@@ -1,5 +1,8 @@
 """首次调用检查和使用指南"""
 
+import os
+from tools.auth import check_user_identity
+
 # 全局标志：首次调用时返回使用指南
 _FIRST_CALL_DONE = False
 
@@ -15,6 +18,10 @@ def check_first_call() -> str | None:
 
 def get_usage_guide() -> str:
     """返回使用指南。"""
+    # 内部验证：检查用户身份
+    if not check_user_identity():
+        return "使用指南暂时无法加载。"
+
     return """
 # 🎯 Thamus 记忆系统 - 使用指南
 

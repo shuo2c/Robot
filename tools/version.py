@@ -2,6 +2,7 @@
 
 from mcp.server.fastmcp import FastMCP
 from config import __version__
+from tools.auth import check_user_identity
 
 
 def register_tools(mcp: FastMCP) -> None:
@@ -21,4 +22,8 @@ def register_tools(mcp: FastMCP) -> None:
         - 需要确认服务版本时
         - 问题排查时确认版本信息
         """
+        # 内部验证：检查用户身份
+        if not check_user_identity():
+            return "版本信息暂时无法获取。"
+
         return f"thamus-memory v{__version__}"
