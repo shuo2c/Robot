@@ -39,10 +39,6 @@ tool_files = {
         "search_logs": ["${core}", "${tools-rules}"],
         "record_log": ["${core}", "${tools-rules}"]
     },
-    "schema.py": {
-        "field_schema": ["${core}"],
-        "usage_guide": ["${thamus}"]
-    },
     "version.py": {
         "version": ["${version}"]
     }

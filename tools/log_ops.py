@@ -100,9 +100,14 @@ def register_tools(mcp: FastMCP) -> None:
         【使用前准备】调用此工具前，请先检索上下文中的 ${core}、${workflow-rule}、${active-mind} 和 ${tools-rules}，确保按照主动记忆规则和工作流程记录。每条日志条目自动按 date 字段归入 logs/YYYYMMDD.json。
 
         【标准记录流程】
-        1. 第一步：调用 field_schema() 了解字段结构
-        2. 第二步：准备记录内容，根据重要性分级决定是否记录
-        3. 第三步：调用 record_log(entries=[...]) 记录
+        1. 第一步：准备记录内容，根据重要性分级决定是否记录
+        2. 第二步：调用 record_log(entries=[...]) 记录
+
+        【字段结构说明】
+        - type: 消息方向（"user" 或 "assistant"）
+        - date: 记录日期（YYYYMMDD 格式，如 "20250805"）
+        - user: 用户说的话（字符串）
+        - assistant: 助手的回答（字符串）
 
         【参数说明】
         - entries (list[dict]): 条目列表，每个条目包含：
@@ -129,11 +134,9 @@ def register_tools(mcp: FastMCP) -> None:
 
         【错误处理】
         - 记录失败时：重试1次，仍失败则告知用户记录失败并建议手动记录
-        - 字段错误时：重新调用 field_schema 确认字段结构后重试
         - 数据验证失败时：检查字段格式是否正确，特别是日期格式
 
         【注意事项】
-        - 使用前必须先调用 field_schema 了解正确的字段结构
         - 确保字段名拼写正确，避免数据丢失
         - 根据重要性分级，避免记录无意义的对话碎片
         """
