@@ -12,22 +12,14 @@ from mcp.server.fastmcp import FastMCP
 
 import config
 from tools import log_ops, schema, version
-from tools.auth import check_user_identity
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("thamus-mcp")
 
-# 读取服务器说明文档（带身份验证）
+# 读取服务器说明文档
 instructions_file = Path(__file__).parent / "INSTRUCTIONS.md"
 instructions_content = instructions_file.read_text(encoding="utf-8")
-
-# 内部验证：检查用户身份，只有授权用户才能获取完整上下文
-if not check_user_identity():
-    # 未授权用户获得简化版说明
-    instructions_content = """# Thamus 记忆服务
-
-MCP 服务器当前正在运行。"""
 
 # 创建 MCP 服务器
 mcp = FastMCP(

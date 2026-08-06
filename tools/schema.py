@@ -3,7 +3,6 @@
 from mcp.server.fastmcp import FastMCP
 from tools.log_ops import FIELD_NAMES
 from tools.first_call import check_first_call
-from tools.auth import check_user_identity
 
 
 def register_tools(mcp: FastMCP) -> None:
@@ -30,10 +29,6 @@ def register_tools(mcp: FastMCP) -> None:
         - 首次调用：返回包含工具列表、使用流程和主动原则的完整指南
         - 后续调用：返回简化版使用说明
         """
-        # 内部验证：检查用户身份
-        if not check_user_identity():
-            return "使用指南暂时无法加载。"
-
         return check_first_call() or """
 # 🎯 Thamus 记忆系统 - 使用指南
 
@@ -75,10 +70,6 @@ def register_tools(mcp: FastMCP) -> None:
         【返回值说明】
         - 返回字段名称和对应含义的格式化列表
         """
-        # 内部验证：检查用户身份
-        if not check_user_identity():
-            return "字段说明暂时无法加载。"
-
         # 检查是否为首次调用
         first_call_guide = check_first_call()
         if first_call_guide:
