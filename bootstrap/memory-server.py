@@ -56,5 +56,13 @@ def about() -> str:
 
 
 if __name__ == "__main__":
-    transport = sys.argv[1] if len(sys.argv) > 1 else "stdio"
-    mcp.run(transport=transport)  # type: ignore[call-overload]
+    try:
+        transport = sys.argv[1] if len(sys.argv) > 1 else "stdio"
+        logger.info(f"启动 Thamus MCP 服务器，传输模式: {transport}")
+        mcp.run(transport=transport)  # type: ignore[call-overload]
+    except KeyboardInterrupt:
+        logger.info("服务器被用户中断")
+        sys.exit(0)
+    except Exception as e:
+        logger.error(f"服务器启动失败: {e}")
+        sys.exit(1)
