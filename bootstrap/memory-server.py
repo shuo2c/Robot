@@ -12,6 +12,7 @@ from mcp.server.fastmcp import FastMCP
 
 import config
 from tools import log_ops, version
+from tools.call_log import install_call_logger
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -30,6 +31,9 @@ mcp = FastMCP(
 # 注册所有工具模块
 version.register_tools(mcp)
 log_ops.register_tools(mcp)
+
+# 安装调用日志：在派发层记录工具/资源调用的时间、接口、参数到 system-log/YYYYMMDD.log
+install_call_logger(mcp)
 
 # 注册资源
 @mcp.resource("memo://about")

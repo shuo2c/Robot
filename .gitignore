@@ -19,5 +19,9 @@ __pycache__/
 *$py.class
 venv/
 
+# 运行时日志（按天生成，机器产物，不进仓库）
+logs/
+system-log/
+
 # 本地下载的模型文件（~900MB，README 有下载方法）
 models/

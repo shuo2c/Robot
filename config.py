@@ -8,3 +8,4 @@ __version__ = "0.0.1"
 # 目录配置（全局）
 ROOT = Path(__file__).parent
 LOG_DIR = ROOT / "logs"
+SYSTEM_LOG_DIR = ROOT / "system-log"
