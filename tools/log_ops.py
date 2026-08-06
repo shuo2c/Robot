@@ -9,7 +9,6 @@ from typing import Any
 from mcp.server.fastmcp import FastMCP
 
 from config import LOG_DIR
-from tools.first_call import check_first_call
 
 logger = logging.getLogger("thamus-mcp")
 
@@ -55,11 +54,6 @@ def register_tools(mcp: FastMCP) -> None:
         - 搜索失败时：重试1次，仍失败则告知用户搜索功能异常
         - 不要编造：不要编造或臆测历史信息，诚实告知搜索结果
         """
-        # 检查是否为首次调用
-        first_call_guide = check_first_call()
-        if first_call_guide:
-            return first_call_guide
-
         # 确保日志目录存在
         LOG_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -143,11 +137,6 @@ def register_tools(mcp: FastMCP) -> None:
         - 确保字段名拼写正确，避免数据丢失
         - 根据重要性分级，避免记录无意义的对话碎片
         """
-        # 检查是否为首次调用
-        first_call_guide = check_first_call()
-        if first_call_guide:
-            return first_call_guide
-
         LOG_DIR.mkdir(parents=True, exist_ok=True)
 
         written = 0

@@ -2,7 +2,6 @@
 
 from mcp.server.fastmcp import FastMCP
 from tools.log_ops import FIELD_NAMES
-from tools.first_call import check_first_call
 
 
 def register_tools(mcp: FastMCP) -> None:
@@ -15,8 +14,7 @@ def register_tools(mcp: FastMCP) -> None:
         【使用前准备】调用此工具前，请先检索上下文中的 ${project}、${service-description}、${capabilities} 和 ${thamus} 了解项目背景、服务功能、核心能力和设计理念。
 
         【行为说明】
-        - 首次调用时返回完整的使用指南，包括核心工具介绍、使用流程和主动使用原则
-        - 后续调用时返回简化版本，因为首次调用时已经提供了详细说明
+        - 每次调用返回完整的使用指南
         - 每次会话开始时建议调用此工具获取使用说明
 
         【包含内容】
@@ -26,10 +24,9 @@ def register_tools(mcp: FastMCP) -> None:
         - 使用示例
 
         【返回值说明】
-        - 首次调用：返回包含工具列表、使用流程和主动原则的完整指南
-        - 后续调用：返回简化版使用说明
+        - 返回包含工具列表、使用流程和主动原则的完整指南
         """
-        return check_first_call() or """
+        return """
 # 🎯 Thamus 记忆系统 - 使用指南
 
 欢迎使用 Thamus 持久化记忆服务！
@@ -37,10 +34,55 @@ def register_tools(mcp: FastMCP) -> None:
 ## 📋 核心工具
 
 1. **record_log** - 记录对话到持久化存储
-2. **search_logs** - 搜索历史记忆
-3. **field_schema** - 查看字段含义
+   ```json
+   {
+     "entries": [
+       {
+         "type": "user|assistant",
+         "date": "20250805",
+         "user": "用户说的内容",
+         "assistant": "助手的回复"
+       }
+     ]
+   }
+   ```
 
-详细说明请参考首次调用时的完整指南。
+2. **search_logs** - 搜索历史记忆
+   ```json
+   {
+     "query": "搜索关键词"
+   }
+   ```
+
+3. **field_schema** - 查看字段含义
+   无需参数，直接调用
+
+## 🚀 使用流程
+
+1. **首次调用** → 阅读本指南
+2. **搜索历史** → 调用 search_logs 了解用户背景
+3. **记录重要信息** → 调用 record_log 保存关键内容
+4. **会话结束** → 调用 record_log 记录总结
+
+## ⚡ 主动使用原则
+
+- ✅ 对话开始：主动搜索历史记忆
+- ✅ 用户表达偏好：立即记录到记忆
+- ✅ 完成重要任务：记录结果和经验
+- ✅ 对话结束：记录关键结论和决策
+
+## 📊 信息重要性分级
+
+**P0（必须立即记录）**：用户明确偏好、重要决策、任务完成结果
+**P1（应该记录）**：异常情况、用户反馈模式、有意义的对话总结
+**P2（可选记录）**：一般性交流信息、背景和上下文
+**P3（不记录）**：纯聊天内容、重复信息、临时测试内容
+
+## 🔧 标准记录流程
+
+1. **第一步**：调用 field_schema() 了解字段结构
+2. **第二步**：准备记录内容，根据重要性分级决定是否记录
+3. **第三步**：调用 record_log(entries=[...]) 记录
 """
 
     @mcp.tool()
@@ -70,10 +112,5 @@ def register_tools(mcp: FastMCP) -> None:
         【返回值说明】
         - 返回字段名称和对应含义的格式化列表
         """
-        # 检查是否为首次调用
-        first_call_guide = check_first_call()
-        if first_call_guide:
-            return first_call_guide
-
         lines = ["字段说明:"] + [f"  {k} — {v}" for k, v in FIELD_NAMES.items()]
         return "\n".join(lines)
